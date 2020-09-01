@@ -231,7 +231,7 @@ MainWindow::MainWindow(QWidget *parent)
     // this->sweepRecord();
     this->initialTableView();
 
-    ui->MotionSelectioncomboBox->addItems({"Motion 1", "RSN766", "RSN963", "RSN1203"});
+    ui->MotionSelectioncomboBox->addItems({"Motion 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
     ui->MotionSelectioncomboBox->setCurrentIndex(0);
 
     this->createActions();

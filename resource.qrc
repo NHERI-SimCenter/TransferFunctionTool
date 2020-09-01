@@ -10,5 +10,7 @@
         <file>resources/motions/motion3.json</file>
         <file>resources/motions/motion4.json</file>
         <file>resources/stylesheet.css</file>
+        <file>resources/motions/motion5.json</file>
+        <file>resources/motions/motion6.json</file>
     </qresource>
 </RCC>
