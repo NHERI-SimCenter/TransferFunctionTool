@@ -1,0 +1,64 @@
+# Prerequisites
+*.d
+.DS_Store
+
+# old text editor files
+*~
+
+# Qt created files
+moc*
+ui_*.h
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.user
+
+*.autosave
+
+*.stash
+*.pc
+*.prl
+
+*.swp
+*.dmg
+
+conanbuildinfo.txt
+
+conaninfo.txt
+
+conanbuildinfo.cmake
+
+conan.lock
+
+conanbuildinfo.pri
+
+Makefile
+
+graph_info.json
