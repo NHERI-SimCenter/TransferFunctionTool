@@ -154,11 +154,11 @@ MainWindow::MainWindow(QWidget *parent)
     // ------------------------------------------------------------------------
     // Controls Boxes
 
-    ui->vsSpinBox->setRange(0.1, max_Vs);
+    ui->vsSpinBox->setRange(1, max_Vs);
     ui->vsSpinBox->setValue(m_defaultVs);
     ui->vsSpinBox->setSingleStep(0.1);
 
-    ui->vsSlider->setRange(1, max_Vs * 10);
+    ui->vsSlider->setRange(10, max_Vs * 10);
     ui->vsSlider->setValue(m_defaultVs * 10);
 
     connect(ui->vsSpinBox, SIGNAL(valueChanged(double)),this,SLOT(notifyVsDoubleValueChanged(double)));
@@ -910,6 +910,7 @@ void MainWindow::on_picker_appended (const QPoint &pos)
     if (obj.index >= 1) {
         setActiveLayer(obj.index);
         ui->tableView->m_sqlModel->setActive(obj.index-1);
+        ui->tableView->selectRow(obj.index-1);
     }
 }
 
