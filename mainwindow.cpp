@@ -290,7 +290,7 @@ void MainWindow::on_btn_earthquake_clicked()
 void MainWindow::on_MotionSelectioncomboBox_currentIndexChanged(int index)
 {
     loadFile(QString (":/resources/motions/motion%1.json").arg(index + 1));
-    updatePlots();
+    onTableViewUpdated();
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -304,8 +304,7 @@ void MainWindow::on_btn_sine_clicked()
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     sinRecord();
-    // updatePlots();
-    onTableViewUpdated();
+    updatePlots();
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -319,8 +318,7 @@ void MainWindow::on_btn_sweep_clicked()
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     sweepRecord();
-    // updatePlots();
-    onTableViewUpdated();
+    updatePlots();
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -342,6 +340,7 @@ void MainWindow::on_loadMotion_clicked()
     ui->frequencySlider->setEnabled(false);
     if (!fileName.isEmpty())
         loadFile(fileName);
+    calculate();
     updatePlots();
     ui->userMotionFile->setText(fileName);
     ui->tabWidget->setCurrentIndex(1);
@@ -363,7 +362,7 @@ void MainWindow::sinRecord(double f)
 
     setTime();
     setFreq();
-    // calculate();
+    calculate();
 }
 
 void MainWindow::sweepRecord()
@@ -379,9 +378,9 @@ void MainWindow::sweepRecord()
         m_time[i]= time;
         m_accInput[i] = sin(25.0 * time + 100.0 * (time * time / 2.0) / 8.0);
     }
-
     setFreq();
-    // calculate();
+    updateSoilTF();
+    calculate();
 }
 
 void MainWindow::setFreq()
@@ -389,7 +388,6 @@ void MainWindow::setFreq()
     m_freq.resize(m_accInput.size()/2+1);
     // double dfreq = 1 / ( 2 * m_dt * (freq.size() - 1 ) );
     double sampleFreq = 1.0 / m_dt;
-    qDebug() << sampleFreq;
     for (int i = 0; i < m_freq.size(); i++ ) {
         m_freq[i] = i * sampleFreq / m_accInput.size();
     }
@@ -399,7 +397,6 @@ void MainWindow::setTime()
 {
     //Define time QVector
     m_time.resize(m_accInput.size());
-    qDebug() << m_accInput.size();
     for (int i=0; i<m_time.size();i++){
         m_time[i]=  i * m_dt;
     }
@@ -459,7 +456,6 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
 {
     int nPoints = accTH.size();
     m_dt = dT;
-    qDebug() << dT;
     m_accInput.clear();
     for (int ii = 0; ii < nPoints; ii++){
         m_accInput.append(accTH[ii].toDouble() * accUnit);
@@ -467,7 +463,6 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
     if (nPoints % 2 == 0) m_accInput.append(0.0);
     setTime();
     setFreq();
-    // calculate();
 };
 
 void MainWindow::version()
@@ -659,6 +654,7 @@ void MainWindow::setActiveLayer(const QModelIndex &index)
     ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
     ui->tableView->setFocus();
     ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
+    plotLayers();
     updateSpinBox();
 }
 
@@ -719,8 +715,7 @@ void MainWindow::updateSoilTF()
 {
         double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
         int nPt = m_freq.size();
-        double maxfreq = 40.0;
-        double dfreq = maxfreq/nPt;
+        double dfreq = m_freq[1] - m_freq[0];
         QVector<double> freq(nPt), omega(nPt);
         QVector<std::complex<double> > mAA(nPt), mBB(nPt);
         QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
