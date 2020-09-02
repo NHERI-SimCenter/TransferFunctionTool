@@ -44,6 +44,8 @@ private slots:
     void on_btn_sine_clicked();
     void on_btn_sweep_clicked();
     void on_btn_loadMotion_clicked();
+    void updateSpinBox();
+
 
     void notifyVsIntValueChanged(int value) {
         double doubleValue = value / 10.0;
@@ -112,14 +114,16 @@ private slots:
     void on_densitySpinBox_valueChanged(double arg1);
     void on_thicknessSpinBox_valueChanged(double arg1);
     void on_dampingSpinBox_valueChanged(double arg1);
-    void updateSpinBox();
+
+    void on_resetFigureBtn_clicked();
+    void on_lockAxischeckBox_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;
 
     void createActions();
     void initialTableView();
-    void updatePlots();
+    void updatePlots(bool updateInputMotionFlag = true);
     void loadFile(const QString &fileName);
     void plotLayers();
 
@@ -133,7 +137,7 @@ private:
     void sweepRecord();
     void readGM(QJsonArray accTH, double dT, double accUnit);
 
-protected:
+    bool m_lockAxesFlag = false;
     int m_activeLayer = 1;
     double m_defaultThickness = 5.0;
     double m_defaultVs = 200.0;
@@ -149,6 +153,11 @@ protected:
     QVector<double> m_freq;
     QVector<double> m_soilTF;
     QVector<double> m_absSoilTF;
+    QVector<double> m_xUpLimits;
+    QVector<double> m_xLowLimits;
+    QVector<double> m_yUpLimits;
+    QVector<double> m_yLowLimits;
+
 
     QwtPlot *plot;
     SimFigure *AccOFig;

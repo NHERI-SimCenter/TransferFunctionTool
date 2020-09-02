@@ -124,8 +124,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
     ui->TransferFunctionFig->grid(true,false);
 
-
-
     ui->FourierInputFig->showAxisControls(false);
     ui->FourierInputFig->setXLabel("Freq. [Hz]");
     ui->FourierInputFig->setYLabel("FA [g-s]");
@@ -141,7 +139,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccInputFig->grid(true,false);
 
-
+    m_xUpLimits.resize(4);
+    m_xLowLimits.resize(4);
+    m_yUpLimits.resize(4);
+    m_yLowLimits.resize(4);
 
     // initial values
     double max_damping = 30;
@@ -222,6 +223,7 @@ MainWindow::MainWindow(QWidget *parent)
     // add some connections
     // connect(ui->tableView->m_sqlModel, SIGNAL(dataChanged(const QModelIndex&,const QModelIndex&)), this, SLOT(onTableViewUpdated()));
     connect(ui->tableView, SIGNAL(cellClicked(const QModelIndex&)), this, SLOT(setActiveLayer(const QModelIndex&)));
+    // connect(ui->tableView->itemDelegate(),SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),SLOT(updateSpinBox()));
 
 
     ui->loadMotion->setEnabled(false);
@@ -572,38 +574,56 @@ void MainWindow::copyright()
 }
 
 
-void MainWindow::updatePlots()
+void MainWindow::updatePlots(bool updateInputMotionFlag)
 {
     ui->AccOutputFig->clear();
-    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue);
     // ui->AccOutputFig->setLabelFontSize(8);
-    ui->AccOutputFig->setXlimits(0, m_time.back());
 
     ui->FourierOutputFig->clear();
-    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black);
     // ui->FourierOutputFig->setLabelFontSize(8);
-    ui->FourierOutputFig->setXlimits(0, 25);
 
     ui->TransferFunctionFig->clear();
-    ui->TransferFunctionFig->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
     // ui->TransferFunctionFig->setLabelFontSize(8);
-    ui->TransferFunctionFig->setXlimits(0, 25);
 
     ui->TransferFunctionFig_TabLayer->clear();
-    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
     // ui->TransferFunctionFig_TabLayer->setLabelFontSize(10);
-    ui->TransferFunctionFig_TabLayer->setXlimits(0, 25);
 
-    ui->FourierInputFig->clear();
-    ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
-    // ui->FourierInputFig->setLabelFontSize(8);
-    ui->FourierInputFig->setXlimits(0, 25);
+    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue);
+    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black);
+    ui->TransferFunctionFig->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
+    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
 
-    ui->AccInputFig->clear();
-    ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
-    // ui->AccInputFig->setLabelFontSize(8);
-    ui->AccInputFig->setXlimits(0, m_time.back());
+    if (updateInputMotionFlag) {
+        ui->FourierInputFig->clear();
+        // ui->FourierInputFig->setLabelFontSize(8);
 
+        ui->AccInputFig->clear();
+        // ui->AccInputFig->setLabelFontSize(8);
+
+        ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
+        ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
+    }
+
+    if (!m_lockAxesFlag) {
+        ui->AccOutputFig->setXlimits(0, m_time.back());
+        ui->FourierOutputFig->setXlimits(0, 25);
+        ui->TransferFunctionFig->setXlimits(0, 25);
+        ui->TransferFunctionFig_TabLayer->setXlimits(0, 25);
+        if (updateInputMotionFlag) {
+            ui->FourierInputFig->setXlimits(0, 25);
+            ui->AccInputFig->setXlimits(0, m_time.back());
+        }
+    } else {
+        ui->TransferFunctionFig_TabLayer->setXlimits(m_xLowLimits[0], m_xUpLimits[0]);
+        ui->TransferFunctionFig_TabLayer->setYlimits(m_yLowLimits[0], m_yUpLimits[0]);
+        qDebug() << m_yUpLimits[0];
+        ui->TransferFunctionFig->setXlimits(m_xLowLimits[1], m_xUpLimits[1]);
+        ui->TransferFunctionFig->setYlimits(m_yLowLimits[1], m_yUpLimits[1]);
+        ui->FourierOutputFig->setXlimits(m_xLowLimits[2], m_xUpLimits[2]);
+        ui->FourierOutputFig->setYlimits(m_yLowLimits[2], m_yUpLimits[2]);
+        ui->AccOutputFig->setXlimits(m_xLowLimits[3], m_xUpLimits[3]);
+        ui->AccOutputFig->setYlimits(m_yLowLimits[3], m_yUpLimits[3]);
+    }
 }
 
 void MainWindow::on_addRowBtn_clicked()
@@ -614,6 +634,7 @@ void MainWindow::on_addRowBtn_clicked()
     ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount()));
     updateLayerID();
     onTableViewUpdated();
+    updatePlots(false);
     // plotLayers();
 }
 
@@ -625,6 +646,7 @@ void MainWindow::on_delRowBtn_clicked()
         ui->totalHeight->setText(QString::number(ui->tableView->m_sqlModel->getTotalHeight()));
         updateLayerID();
         onTableViewUpdated();
+        updatePlots(false);
         // plotLayers();
     }
 }
@@ -642,10 +664,10 @@ void MainWindow::onTableViewUpdated()
 {
 
     // updateSpinBox();
+    // emit ui->tableView->onCellSingleClicked(ui->tableView->model()->index(m_activeLayer - 1, 1));
     plotLayers();
     updateSoilTF();
     calculate();
-    updatePlots();
 }
 
 void MainWindow::setActiveLayer(const QModelIndex &index)
@@ -671,6 +693,7 @@ void MainWindow::on_vsSpinBox_valueChanged(double arg1)
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, VS, arg1);
         ui->tableView->update();
         onTableViewUpdated();
+        updatePlots(false);
     }
 }
 
@@ -680,6 +703,7 @@ void MainWindow::on_densitySpinBox_valueChanged(double arg1)
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, DENSITY, arg1);
         ui->tableView->update();
         onTableViewUpdated();
+        updatePlots(false);
     }
 }
 
@@ -689,6 +713,7 @@ void MainWindow::on_thicknessSpinBox_valueChanged(double arg1)
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, THICKNESS, arg1);
         ui->tableView->update();
         onTableViewUpdated();
+        updatePlots(false);
     }
 }
 
@@ -698,6 +723,7 @@ void MainWindow::on_dampingSpinBox_valueChanged(double arg1)
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, ESIZE, arg1); // element size for damping
         ui->tableView->update();
         onTableViewUpdated();
+        updatePlots(false);
     }
 }
 
@@ -1007,3 +1033,31 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
 }
 
 
+
+void MainWindow::on_resetFigureBtn_clicked()
+{
+    ui->lockAxischeckBox->setChecked(false);
+    updatePlots();
+}
+
+void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
+{
+    m_lockAxesFlag = arg1;
+    // record current axis limits
+    m_xUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxX();
+    m_xLowLimits[0] = ui->TransferFunctionFig_TabLayer->minX();
+    m_yUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxY();
+    m_yLowLimits[0] = ui->TransferFunctionFig_TabLayer->minY();
+    m_xUpLimits[1] = ui->TransferFunctionFig->maxX();
+    m_xLowLimits[1] = ui->TransferFunctionFig->minX();
+    m_yUpLimits[1] = ui->TransferFunctionFig->maxY();
+    m_yLowLimits[1] = ui->TransferFunctionFig->minY();
+    m_xUpLimits[2] = ui->FourierOutputFig->maxX();
+    m_xLowLimits[2] = ui->FourierOutputFig->minX();
+    m_yUpLimits[2] = ui->FourierOutputFig->maxY();
+    m_yLowLimits[2] = ui->FourierOutputFig->minY();
+    m_xUpLimits[3] = ui->AccOutputFig->maxX();
+    m_xLowLimits[3] = ui->AccOutputFig->minX();
+    m_yUpLimits[3] = ui->AccOutputFig->maxY();
+    m_yLowLimits[3] = ui->AccOutputFig->minY();
+}
