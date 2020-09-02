@@ -29,15 +29,13 @@ SOURCES += \
     UI/BonzaTableModel.cpp \
     UI/BonzaTableView.cpp \
     mainwindow.cpp \
-    TFunctionCalc.cpp \
     main.cpp
 
 HEADERS += \
     GlobalConstances.h \
     UI/BonzaTableModel.h \
     UI/BonzaTableView.h \
-    mainwindow.h \
-    TFunctionCalc.h
+    mainwindow.h
 
 FORMS += \
     mainwindow.ui

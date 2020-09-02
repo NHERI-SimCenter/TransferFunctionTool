@@ -713,89 +713,89 @@ void MainWindow::updateSpinBox()
 // calculate transfer function
 void MainWindow::updateSoilTF()
 {
-        double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
-        int nPt = m_freq.size();
-        double dfreq = m_freq[1] - m_freq[0];
-        QVector<double> freq(nPt), omega(nPt);
-        QVector<std::complex<double> > mAA(nPt), mBB(nPt);
-        QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
-        QVector<std::complex<double> > mAAaux(nPt), mBBaux(nPt);
-        QVector<double> Nfreq(nPt);
+    double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
+    int nPt = m_freq.size();
+    double dfreq = m_freq[1] - m_freq[0];
+    QVector<double> freq(nPt), omega(nPt);
+    QVector<std::complex<double> > mAA(nPt), mBB(nPt);
+    QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
+    QVector<std::complex<double> > mAAaux(nPt), mBBaux(nPt);
+    QVector<double> Nfreq(nPt);
 
-        // m_freq.resize(nPt);
-        m_soilTF.resize(nPt);
+    // m_freq.resize(nPt);
+    m_soilTF.resize(nPt);
 
-        std::complex<double> kstar;
-        std::complex<double> Vsstar;
-        std::complex<double> kHstar;
-        std::complex<double> alphastar;
-        std::complex<double> mExpA;
-        std::complex<double> mExpB;
-        std::complex<double> One;
-        std::complex<double> AAA;
+    std::complex<double> kstar;
+    std::complex<double> Vsstar;
+    std::complex<double> kHstar;
+    std::complex<double> alphastar;
+    std::complex<double> mExpA;
+    std::complex<double> mExpB;
+    std::complex<double> One;
+    std::complex<double> AAA;
 
-        One = std::complex<double>(1,0);
-        freq[0]=0.0;
-        for (int i=1; i<m_freq.size();i++){
-            freq[i]  = freq[i-1]+dfreq;
-            omega[i] = 2.0*M_PI*freq[i];
-            mAAaux[i]=std::complex<double>(1,0);
-            mBBaux[i]=std::complex<double>(1,0);
+    One = std::complex<double>(1,0);
+    freq[0]=0.0;
+    for (int i=1; i<m_freq.size();i++){
+        freq[i]  = freq[i-1]+dfreq;
+        omega[i] = 2.0*M_PI*freq[i];
+        mAAaux[i]=std::complex<double>(1,0);
+        mBBaux[i]=std::complex<double>(1,0);
+    }
+    m_freq = freq;
+    mAA = mAAaux; mBB = mBBaux;
+
+    // set dummy value for rock layer
+    int numLayers = ui->tableView->m_sqlModel->rowCount() + 1;
+    QVector<QString> vsVec = ui->tableView->m_sqlModel->getvsVec();
+    vsVec.append(QString::number(DefaultVs));
+    QVector<QString> dampingVec = ui->tableView->m_sqlModel->getesizeVec();  // damping
+    dampingVec.append("2");
+    QVector<QString> thicknessVec = ui->tableView->m_sqlModel->getthicknessVec();
+    thicknessVec.append(QString::number(DefaultThickness));
+    QVector<QString> rhoVec = ui->tableView->m_sqlModel->getdensityVec();
+    rhoVec.append(QString::number(DefaultDensity));
+
+    if (numLayers == 0)
+        return;
+
+    for(int i = 0; i<numLayers-1; i++){
+        Psi = dampingVec[i].toDouble() /100.0;
+        Psi1 = dampingVec[i+1].toDouble() /100.0;
+        HH  = thicknessVec[i].toDouble();
+        Vs = vsVec[i].toDouble();
+        Vs1 = vsVec[i+1].toDouble();
+        Rho = rhoVec[i].toDouble();
+        Rho1 = rhoVec[i+1].toDouble();
+        mAAaux = mAA; mBBaux = mBB;
+
+        aux = Rho*Vs/(Rho1*Vs1)/(1+Psi1*Psi1);
+        alphastar = std::complex<double>(aux*(1+Psi1*Psi1), -aux*(Psi1-Psi));
+
+        for (int ii = 0; ii < freq.size(); ii++ ){
+            double km = 2.0* M_PI *freq[ii]/Vs/(1.0+Psi*Psi);
+            double kmHH = km*HH;
+            kstar = std::complex<double>(km, -km*Psi);
+            Vsstar = std::complex<double>(Vs, Vs*Psi);
+            kHstar = std::complex<double>(km*HH*Psi, km*HH);
+            mExpA = std::exp(kHstar);
+            mExpB = std::exp(-kHstar);
+            mAA[ii] = 0.5*mAAaux[ii]*(One+alphastar)*mExpA + 0.5*mBBaux[ii]*(One-alphastar)*mExpB;
+            mBB[ii] = 0.5*mAAaux[ii]*(One-alphastar)*mExpA + 0.5*mBBaux[ii]*(One+alphastar)*mExpB;
         }
-        m_freq = freq;
-        mAA = mAAaux; mBB = mBBaux;
-
-        // set dummy value for rock layer
-        int numLayers = ui->tableView->m_sqlModel->rowCount() + 1;
-        QVector<QString> vsVec = ui->tableView->m_sqlModel->getvsVec();
-        vsVec.append(QString::number(DefaultVs));
-        QVector<QString> dampingVec = ui->tableView->m_sqlModel->getesizeVec();  // damping
-        dampingVec.append("2");
-        QVector<QString> thicknessVec = ui->tableView->m_sqlModel->getthicknessVec();
-        thicknessVec.append(QString::number(DefaultThickness));
-        QVector<QString> rhoVec = ui->tableView->m_sqlModel->getdensityVec();
-        rhoVec.append(QString::number(DefaultDensity));
-
-        if (numLayers == 0)
-            return;
-
-        for(int i = 0; i<numLayers-1; i++){
-            Psi = dampingVec[i].toDouble() /100.0;
-            Psi1 = dampingVec[i+1].toDouble() /100.0;
-            HH  = thicknessVec[i].toDouble();
-            Vs = vsVec[i].toDouble();
-            Vs1 = vsVec[i+1].toDouble();
-            Rho = rhoVec[i].toDouble();
-            Rho1 = rhoVec[i+1].toDouble();
-            mAAaux = mAA; mBBaux = mBB;
-
-            aux = Rho*Vs/(Rho1*Vs1)/(1+Psi1*Psi1);
-            alphastar = std::complex<double>(aux*(1+Psi1*Psi1), -aux*(Psi1-Psi));
-
-            for (int ii = 0; ii < freq.size(); ii++ ){
-                double km = 2.0* M_PI *freq[ii]/Vs/(1.0+Psi*Psi);
-                double kmHH = km*HH;
-                kstar = std::complex<double>(km, -km*Psi);
-                Vsstar = std::complex<double>(Vs, Vs*Psi);
-                kHstar = std::complex<double>(km*HH*Psi, km*HH);
-                mExpA = std::exp(kHstar);
-                mExpB = std::exp(-kHstar);
-                mAA[ii] = 0.5*mAAaux[ii]*(One+alphastar)*mExpA + 0.5*mBBaux[ii]*(One-alphastar)*mExpB;
-                mBB[ii] = 0.5*mAAaux[ii]*(One-alphastar)*mExpA + 0.5*mBBaux[ii]*(One+alphastar)*mExpB;
-            }
-            if (i == 0){
-                mAA1 = mAA;
-                mBB1 = mBB;
-            }
+        if (i == 0){
+            mAA1 = mAA;
+            mBB1 = mBB;
         }
+    }
 
-        m_soilTF[0] = 1.0;
+    m_soilTF[0] = 1.0;
 
-        for (int i=1; i<m_freq.size();i++){
-            AAA = One/(mAA[i]+mBB[i]);
-            m_soilTF[i]= 2*abs(AAA);
-        }
-        // calculateNatFreq(nPt, maxfreq);
+    for (int i=1; i<m_freq.size();i++){
+        AAA = One/(mAA[i]+mBB[i]);
+        m_soilTF[i]= 2*abs(AAA);
+    }
+    // calculateNatFreq(nPt, maxfreq);
 }
 
 // ------------------------------------------------------------------------
