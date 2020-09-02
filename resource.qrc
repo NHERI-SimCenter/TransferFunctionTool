@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>resources/schematic.png</file>
         <file>resources/textAboutthis.html</file>
         <file>resources/NHERI-TFT-Icon.icns</file>
         <file>resources/NHERI-TFT-Icon.png</file>
