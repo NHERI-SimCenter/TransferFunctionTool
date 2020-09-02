@@ -7,6 +7,43 @@
 static QString logFilePath;
 
 
+QString openStyleFiles()
+{
+    QString ret;
+    QFile mainStyleFile(":/resources/styleSheets/stylesheet.qss");
+
+#ifdef Q_OS_WIN
+    QFile appendedStyle(":/resources/styleSheets/Win.qss");
+#endif
+
+#ifdef Q_OS_MACOS
+    QFile appendedStyle(":/resources/styleSheets/Mac.qss");
+#endif
+
+#ifdef Q_OS_LINUX
+    QFile appendedStyle(":/resources/styleSheets/Linux.qss");
+#endif
+
+    if (!mainStyleFile.open(QFile::ReadOnly))
+    {
+        return ret;
+    }
+
+    if (!appendedStyle.open(QFile::ReadOnly))
+    {
+        return ret;
+    }
+
+    ret = ret.append(mainStyleFile.readAll());
+    ret = ret.append(appendedStyle.readAll());
+
+    mainStyleFile.close();
+    appendedStyle.close();
+
+    return ret;
+}
+
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -23,10 +60,7 @@ int main(int argc, char *argv[])
     w.show();
 
     // set the global stylesheet
-    QFile file(":/resources/stylesheet.css");
-    if(file.open(QFile::ReadOnly)) {
-      QString styleSheet = QLatin1String(file.readAll());
-      a.setStyleSheet(styleSheet);
-    }
+    a.setStyleSheet(openStyleFiles());
+
     return a.exec();
 }

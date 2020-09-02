@@ -22,7 +22,8 @@ macx {
     #LIBS += /Users/fmk/lib/libBlas.a
     #LIBS += /usr/local/llvm-gcc/lib/libgfortran.a
 
-    LIBS += -llapack -lblas
+    #LIBS += -llapack -lblas
+    LIBS +=  -lmkl_core -lmkl_intel_ilp64 -lmkl_intel_lp64 -lmkl_sequential
 }
 
 linux {

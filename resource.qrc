@@ -8,8 +8,11 @@
         <file>resources/motions/motion2.json</file>
         <file>resources/motions/motion3.json</file>
         <file>resources/motions/motion4.json</file>
-        <file>resources/stylesheet.css</file>
         <file>resources/motions/motion5.json</file>
         <file>resources/motions/motion6.json</file>
+        <file>resources/styleSheets/stylesheet.qss</file>
+        <file>resources/styleSheets/Win.qss</file>
+        <file>resources/styleSheets/Mac.qss</file>
+        <file>resources/styleSheets/Linux.qss</file>
     </qresource>
 </RCC>
