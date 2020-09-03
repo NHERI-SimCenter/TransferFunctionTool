@@ -25,7 +25,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QFont>
+#include <Q>
 
 #include "qwt_plot.h"
 #include "qwt_picker.h"
@@ -1060,4 +1060,29 @@ void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
     m_xLowLimits[3] = ui->AccOutputFig->minX();
     m_yUpLimits[3] = ui->AccOutputFig->maxY();
     m_yLowLimits[3] = ui->AccOutputFig->minY();
+}
+
+void MainWindow::on_actionProvide_feedback_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://www.designsafe-ci.org/help/new-ticket/", QUrl::TolerantMode));
+}
+
+void MainWindow::on_actionVersion_triggered()
+{
+    this->version();
+}
+
+void MainWindow::on_actionCopyright_triggered()
+{
+
+}
+
+void MainWindow::on_action_License_triggered()
+{
+
+}
+
+void MainWindow::on_action_About_triggered()
+{
+
 }

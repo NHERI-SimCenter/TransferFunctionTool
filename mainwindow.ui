@@ -303,22 +303,6 @@
                </property>
               </widget>
              </item>
-             <item row="5" column="0">
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Minimum</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
              <item row="0" column="0" colspan="3">
               <widget class="QRadioButton" name="btn_earthquake">
                <property name="sizePolicy">
@@ -340,19 +324,6 @@
              </item>
              <item row="1" column="1">
               <widget class="QComboBox" name="MotionSelectioncomboBox"/>
-             </item>
-             <item row="1" column="0">
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </widget>
@@ -745,22 +716,6 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="7">
-            <widget class="BonzaTableView" name="tableView">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0" colspan="7">
             <widget class="SimFigure" name="TransferFunctionFig_TabLayer">
              <property name="sizePolicy">
@@ -774,6 +729,22 @@
              </property>
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="7">
+            <widget class="BonzaTableView" name="tableView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -864,7 +835,43 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="action_About"/>
+    <addaction name="actionVersion"/>
+    <addaction name="actionCopyright"/>
+    <addaction name="action_License"/>
+    <addaction name="actionProvide_feedback"/>
+   </widget>
+   <addaction name="menu_Help"/>
   </widget>
+  <action name="action_License">
+   <property name="text">
+    <string>&amp;License</string>
+   </property>
+  </action>
+  <action name="actionProvide_feedback">
+   <property name="text">
+    <string>Provide &amp;feedback</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionVersion">
+   <property name="text">
+    <string>Version</string>
+   </property>
+  </action>
+  <action name="actionCopyright">
+   <property name="text">
+    <string>Copyright</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

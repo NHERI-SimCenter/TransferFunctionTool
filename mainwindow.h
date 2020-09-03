@@ -118,6 +118,13 @@ private slots:
     void on_resetFigureBtn_clicked();
     void on_lockAxischeckBox_stateChanged(int arg1);
 
+    void on_actionProvide_feedback_triggered();
+    void on_actionVersion_triggered();
+    void on_actionCopyright_triggered();
+    void on_action_License_triggered();
+
+    void on_action_About_triggered();
+
 private:
     Ui::MainWindow *ui;
 
