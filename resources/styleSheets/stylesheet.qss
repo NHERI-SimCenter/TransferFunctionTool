@@ -84,8 +84,8 @@ QGroupBox::title {
 }
 
 /*
-* ======= <HEADER AND FOOTER> =======
-*/
+ * ======= <HEADER AND FOOTER> =======
+ */
 
 
 QGroupBox#headerWidget {
