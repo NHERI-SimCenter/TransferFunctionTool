@@ -131,8 +131,8 @@ MainWindow::MainWindow(QWidget *parent)
     double max_damping = 30;
     double max_Hs = 200;
     double max_Vs = 1000;
-    double max_frequency = 30.0;
-    double frequency = 5.0;
+    double max_frequency = 10.0;
+    double frequency = 1.0;
     double max_density = 5.0;
 
     // ------------------------------------------------------------------------
@@ -444,6 +444,7 @@ void MainWindow::harmonicRecord(double f)
 
     this->setTime();
     this->setFreq();
+    this->updateSoilTF();
     this->calculate();
     this->updatePlots(true);
 }
