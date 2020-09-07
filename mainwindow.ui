@@ -33,7 +33,7 @@
     <property name="spacing">
      <number>7</number>
     </property>
-    <item row="0" column="2">
+    <item row="0" column="0" colspan="3">
      <widget class="QFrame" name="mainFrame">
       <property name="minimumSize">
        <size>

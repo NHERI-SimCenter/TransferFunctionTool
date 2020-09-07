@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     QRect rec = QGuiApplication::primaryScreen()->geometry();
     int height = this->height()<int(0.80*rec.height())?int(0.80*rec.height()):this->height();
-    int width  = this->width()<int(0.50*rec.width())?int(0.50*rec.width()):this->width();
+    int width  = this->width()<int(0.60*rec.width())?int(0.60*rec.width()):this->width();
     this->resize(width, height);
 
     // ------------------------------------------------------------------------
@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     QwtText text;
     text.setText("Thickness (m)");
     QFont layerPlotfont;
-    // layerPlotfont.setPointSize(10);
+    layerPlotfont.setPointSize(10);
     text.setFont(layerPlotfont);
     plot->setAxisTitle(QwtPlot::yLeft, text);
 
