@@ -31,9 +31,9 @@
      <number>6</number>
     </property>
     <property name="spacing">
-     <number>-1</number>
+     <number>7</number>
     </property>
-    <item row="0" column="2">
+    <item row="0" column="0" colspan="3">
      <widget class="QFrame" name="mainFrame">
       <property name="minimumSize">
        <size>
@@ -47,7 +47,7 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,5">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,3">
        <property name="spacing">
         <number>6</number>
        </property>
@@ -606,7 +606,7 @@
           </font>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="layerTab">
           <property name="sizePolicy">
@@ -769,6 +769,12 @@
            </property>
            <item>
             <widget class="SimFigure" name="AccOutputFig">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -832,7 +838,7 @@
      <x>0</x>
      <y>0</y>
      <width>1574</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Help">

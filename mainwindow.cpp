@@ -25,7 +25,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <Q>
 
 #include "qwt_plot.h"
 #include "qwt_picker.h"
@@ -34,7 +33,6 @@
 #include "qwt_plot_shapeitem.h"
 #include "qwt_plot_curve.h"
 #include "Utils/dialogabout.h"
-
 #include <algorithm>
 
 #define MIN(vec) *std::min_element(vec.constBegin(), vec.constEnd())
@@ -49,17 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     QRect rec = QGuiApplication::primaryScreen()->geometry();
     int height = this->height()<int(0.80*rec.height())?int(0.80*rec.height()):this->height();
-    int width  = this->width()<int(0.50*rec.width())?int(0.50*rec.width()):this->width();
+    int width  = this->width()<int(0.60*rec.width())?int(0.60*rec.width()):this->width();
     this->resize(width, height);
-
-    //
-    // add SimCenter Header
-    //
-
-    // QString appName = "<P><b><i><FONT COLOR='#000000' FONT SIZE = 4>";
-    // appName.append(QString("Transfer Function Tool"));
-    // appName.append("</i></b></P></br>");
-    // ui->header->setHeadingText(appName);
 
     // ------------------------------------------------------------------------
     // set up plot for figure tab
@@ -67,16 +56,12 @@ MainWindow::MainWindow(QWidget *parent)
     // ui->TransferFunctionFig->setMinimumHeight(150);
     ui->TransferFunctionFig_TabLayer->setXLabel("Freq. [Hz]");
     ui->TransferFunctionFig_TabLayer->setYLabel("[H]");
-    ui->TransferFunctionFig_TabLayer->setLabelFontSize(8);
 
     // ------------------------------------------------------------------------
     // set up plot for layers
     plot = new QwtPlot(this);
     QGridLayout *plotLayout = new QGridLayout();
     plotLayout->addWidget(plot, 0, 0);
-    // plotLayout->setMargin(0);
-    // plotLayout->setVerticalSpacing(10);
-    // plotLayout->setSpacing(10);
     ui->layerGroupBox->setLayout(plotLayout);
 
     plot->setCanvasBackground(QBrush(Qt::white));
@@ -103,41 +88,39 @@ MainWindow::MainWindow(QWidget *parent)
     ui->AccOutputFig->showAxisControls(false);
     ui->AccOutputFig->setXLabel("Time [s]");
     ui->AccOutputFig->setYLabel("Accel. [g]");
-    ui->AccOutputFig->setLabelFontSize(8);
+    int sz = int(0.6 * ui->AccOutputFig->labelFontSize());
     ui->AccOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccOutputFig->grid(true,false);
-
+    ui->AccOutputFig->setTickFontSize(sz);
 
     ui->FourierOutputFig->showAxisControls(false);
     ui->FourierOutputFig->setXLabel("Freq. [Hz]");
     ui->FourierOutputFig->setYLabel("FA [g-s]");
-    ui->FourierOutputFig->setLabelFontSize(8);
     ui->FourierOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierOutputFig->grid(true,false);
-
+    ui->FourierOutputFig->setTickFontSize(sz);
 
     ui->TransferFunctionFig->showAxisControls(false);
     ui->TransferFunctionFig->setXLabel("Freq. [Hz]");
     ui->TransferFunctionFig->setYLabel("[H]");
-    ui->TransferFunctionFig->setLabelFontSize(8);
     ui->TransferFunctionFig->setXLim(0, 25);
     ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
     ui->TransferFunctionFig->grid(true,false);
+    ui->TransferFunctionFig->setTickFontSize(sz);
 
     ui->FourierInputFig->showAxisControls(false);
     ui->FourierInputFig->setXLabel("Freq. [Hz]");
     ui->FourierInputFig->setYLabel("FA [g-s]");
-    ui->FourierInputFig->setLabelFontSize(8);
     ui->FourierInputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierInputFig->grid(true,false);
-
+    ui->FourierInputFig->setTickFontSize(sz);
 
     ui->AccInputFig->showAxisControls(false);
     ui->AccInputFig->setXLabel("Time [s]");
     ui->AccInputFig->setYLabel("Accel. [g]");
-    ui->AccInputFig->setLabelFontSize(8);
     ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccInputFig->grid(true,false);
+    ui->AccInputFig->setTickFontSize(sz);
 
     m_xUpLimits.resize(4);
     m_xLowLimits.resize(4);
@@ -205,6 +188,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(intFrequencyValueChanged(int)), ui->frequencySlider, SLOT(setValue(int)));
     connect(ui->frequencySlider,SIGNAL(valueChanged(int)),this,SLOT(notifyFrequencyIntValueChanged(int)));
     connect(this, SIGNAL(doubleFrequencyValueChanged(double)), ui->frequencySpinBox, SLOT(setValue(double)));
+    connect(this, SIGNAL(doubleFrequencyValueChanged(double)), this, SLOT(harmonicRecord(double)));
 
 
     ui->densitySpinBox->setRange(0.1, max_density);
@@ -230,18 +214,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
 
-    // this->sweepRecord();
     this->initialTableView();
 
     ui->MotionSelectioncomboBox->addItems({"Motion 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
     ui->MotionSelectioncomboBox->setCurrentIndex(0);
 
-    this->createActions();
-
     ui->btn_earthquake->setChecked(true);
-    loadFile(":/resources/motions/motion1.json");
+    this->loadFile(":/resources/motions/motion1.json");
     this->onTableViewUpdated();
-    updatePlots();
+    this->updatePlots();
     ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -253,23 +234,121 @@ MainWindow::~MainWindow()
 void MainWindow::initialTableView()
 {
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    QFont tableViewFont("MS Shell Dlg 2", 12);
-    ui->tableView->setFont(tableViewFont);
+    ui->tableView->horizontalHeader()->setMinimumHeight(30);
     QList<QVariant> valueListLayer;
     valueListLayer << QString ("Layer %1").arg(ui->tableView->m_sqlModel->rowCount() + 1) << m_defaultThickness << m_defaultDensity << m_defaultVs << DefaultEType << m_defaultDamping;
     ui->tableView->insertAt(valueListLayer,0);
-    ui->tableView->setTotalHeight(3);
+    ui->tableView->setTotalHeight(m_defaultThickness);
     ui->totalLayerLineEdit->setText("1");
     ui->totalHeight->setText(QString::number(ui->tableView->totalHeight()));
     ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
 }
 
+void MainWindow::on_actionProvide_feedback_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://www.designsafe-ci.org/help/new-ticket/", QUrl::TolerantMode));
+}
 
-void MainWindow::createActions() {
-    QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
-    QAction *versionAct = helpMenu->addAction(tr("&Version"), this, &MainWindow::version);
-    QAction *aboutAct = helpMenu->addAction(tr("&About"), this, &MainWindow::about);
-    QAction *copyrightAct = helpMenu->addAction(tr("&License"), this, &MainWindow::copyright);
+void MainWindow::on_actionVersion_triggered()
+{
+    QString versionText("Version 1.0");
+    QMessageBox msgBox;
+    QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    msgBox.setText(versionText);
+    QGridLayout *layout = (QGridLayout*)msgBox.layout();
+    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
+    msgBox.exec();
+}
+
+void MainWindow::on_actionCopyright_triggered()
+{
+    QMessageBox msgBox;
+    QString copyrightText = QString("\
+                                    <p>\
+                                    The source code is licensed under a BSD 2-Clause License:<p>\
+                                    \"Copyright (c) 2017-2019, The Regents of the University of California (Regents).\"\
+                                    All rights reserved.<p>\
+                                    <p>\
+                                    Redistribution and use in source and binary forms, with or without \
+                                    modification, are permitted provided that the following conditions are met:\
+                                    <p>\
+                                    1. Redistributions of source code must retain the above copyright notice, this\
+                                    list of conditions and the following disclaimer.\
+                                    \
+                                    \
+                                    2. Redistributions in binary form must reproduce the above copyright notice,\
+                                    this list of conditions and the following disclaimer in the documentation\
+                                    and/or other materials provided with the distribution.\
+                                    <p>\
+                                    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\
+                                    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\
+                                    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\
+                                    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR\
+                                    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\
+                                    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\
+                                    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\
+            ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\
+            (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\
+            SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\
+            <p>\
+            The views and conclusions contained in the software and documentation are those\
+            of the authors and should not be interpreted as representing official policies,\
+            either expressed or implied, of the FreeBSD Project.\
+            <p>\
+            REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, \
+            THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.\
+            THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS \
+            PROVIDED \"AS IS\". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,\
+            UPDATES, ENHANCEMENTS, OR MODIFICATIONS.\
+            <p>\
+            ------------------------------------------------------------------------------------\
+            <p>\
+            The compiled binary form of this application is licensed under a GPL Version 3 license.\
+            The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
+            included in the packaging of this application. \
+            <p>\
+            ------------------------------------------------------------------------------------\
+            <p>\
+            This software makes use of the QT packages (unmodified): core, gui, widgets and network\
+                                                                     <p>\
+                                                                     QT is copyright \"The Qt Company Ltd&quot; and licensed under the GNU Lesser General \
+                                                                     Public License (version 3) which references the GNU General Public License (version 3)\
+      <p>\
+      The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
+      included in the packaging of this application. \
+      <p>\
+      ");
+
+      QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    msgBox.setText(copyrightText);
+    QGridLayout *layout = (QGridLayout*)msgBox.layout();
+    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
+    msgBox.exec();
+}
+
+void MainWindow::on_action_License_triggered()
+{
+
+}
+
+void MainWindow::on_action_About_triggered()
+{
+    DialogAbout *dlg = new DialogAbout();
+    QString aboutTitle("A SimCenter Tool For Transfer Function Calculation");
+    QString aboutSource = ":/resources/textAboutthis.html";
+    dlg->setTitle(aboutTitle);
+    dlg->setTextSource(aboutSource);
+
+    //
+    // adjust size of application window to the available display
+    //
+    QRect rec = QGuiApplication::primaryScreen()->geometry();
+    int height = 0.50*rec.height();
+    int width  = 0.50*rec.width();
+    dlg->resize(width, height);
+
+    dlg->exec();
+    delete dlg;
 }
 
 
@@ -283,16 +362,18 @@ void MainWindow::on_btn_earthquake_clicked()
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     ui->MotionSelectioncomboBox->currentIndex();
-    loadFile(QString (":/resources/motions/motion%1.json").arg(ui->MotionSelectioncomboBox->currentIndex() + 1));
-    updatePlots();
+    this->loadFile(QString (":/resources/motions/motion%1.json").arg(ui->MotionSelectioncomboBox->currentIndex() + 1));
+    this->onTableViewUpdated();
+    this->updatePlots(true);
     ui->tabWidget->setCurrentIndex(1);
 }
 
 
 void MainWindow::on_MotionSelectioncomboBox_currentIndexChanged(int index)
 {
-    loadFile(QString (":/resources/motions/motion%1.json").arg(index + 1));
-    onTableViewUpdated();
+    this->loadFile(QString (":/resources/motions/motion%1.json").arg(index + 1));
+    this->onTableViewUpdated();
+    this->updatePlots();
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -305,8 +386,7 @@ void MainWindow::on_btn_sine_clicked()
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
-    sinRecord();
-    updatePlots();
+    this->harmonicRecord(ui->frequencySpinBox->value());
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -319,8 +399,8 @@ void MainWindow::on_btn_sweep_clicked()
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
-    sweepRecord();
-    updatePlots();
+    this->sweepRecord();
+    this->updatePlots();
     ui->tabWidget->setCurrentIndex(1);
 }
 
@@ -341,20 +421,20 @@ void MainWindow::on_loadMotion_clicked()
     ui->frequencySpinBox->setStyleSheet("QDoubleSpinBox {background-color: lightGray; color: white;}");
     ui->frequencySlider->setEnabled(false);
     if (!fileName.isEmpty())
-        loadFile(fileName);
-    calculate();
-    updatePlots();
+        this->loadFile(fileName);
+    this->onTableViewUpdated();
+    this->updatePlots();
     ui->userMotionFile->setText(fileName);
     ui->tabWidget->setCurrentIndex(1);
 }
 
 // ------------------------------------------------------------------------
 // define motions
-void MainWindow::sinRecord(double f)
+void MainWindow::harmonicRecord(double f)
 {
-    int nPoints = 2000;
+    int nPoints = 4000;
     double s = 0;
-    m_dt = 0.02;
+    m_dt = 0.01;
     m_accInput.resize(nPoints);
 
     for (int i=0; i < nPoints; i++) {
@@ -362,9 +442,10 @@ void MainWindow::sinRecord(double f)
         m_accInput[i] = 0.4 * sin(2 * f * M_PI * s);
     }
 
-    setTime();
-    setFreq();
-    calculate();
+    this->setTime();
+    this->setFreq();
+    this->calculate();
+    this->updatePlots(true);
 }
 
 void MainWindow::sweepRecord()
@@ -380,9 +461,9 @@ void MainWindow::sweepRecord()
         m_time[i]= time;
         m_accInput[i] = sin(25.0 * time + 100.0 * (time * time / 2.0) / 8.0);
     }
-    setFreq();
-    updateSoilTF();
-    calculate();
+    this->setFreq();
+    this->updateSoilTF();
+    this->calculate();
 }
 
 void MainWindow::setFreq()
@@ -450,7 +531,7 @@ void MainWindow::loadFile(const QString &fileName)
         }
         double dT = timeseries[0].toObject()["dT"].toDouble();
         QJsonArray accTH = timeseries[0].toObject()["data"].toArray();
-        readGM(accTH, dT, accUnit);
+        this->readGM(accTH, dT, accUnit);
     }
 }
 
@@ -463,130 +544,24 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
         m_accInput.append(accTH[ii].toDouble() * accUnit);
     }
     if (nPoints % 2 == 0) m_accInput.append(0.0);
-    setTime();
-    setFreq();
+    this->setTime();
+    this->setFreq();
 };
-
-void MainWindow::version()
-{
-    QString versionText("Version 1.0");
-    QMessageBox msgBox;
-    QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    msgBox.setText(versionText);
-    QGridLayout *layout = (QGridLayout*)msgBox.layout();
-    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
-    msgBox.exec();
-}
-
-void MainWindow::about()
-{
-    DialogAbout *dlg = new DialogAbout();
-    QString aboutTitle("A SimCenter Tool For Transfer Function Calculation");
-    QString aboutSource = ":/resources/textAboutthis.html";
-    dlg->setTitle(aboutTitle);
-    dlg->setTextSource(aboutSource);
-
-    //
-    // adjust size of application window to the available display
-    //
-    QRect rec = QGuiApplication::primaryScreen()->geometry();
-    int height = 0.50*rec.height();
-    int width  = 0.50*rec.width();
-    dlg->resize(width, height);
-
-    dlg->exec();
-    delete dlg;
-    /*
-    QString aboutText("A SimCenter Tool For Transfer Function Calculation");
-    QMessageBox msgBox;
-    QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    msgBox.setText(aboutText);
-    QGridLayout *layout = (QGridLayout*)msgBox.layout();
-    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
-    msgBox.exec(); */
-}
-
-void MainWindow::copyright()
-{
-    QMessageBox msgBox;
-    QString copyrightText = QString("\
-                                    <p>\
-                                    The source code is licensed under a BSD 2-Clause License:<p>\
-                                    \"Copyright (c) 2017-2019, The Regents of the University of California (Regents).\"\
-                                    All rights reserved.<p>\
-                                    <p>\
-                                    Redistribution and use in source and binary forms, with or without \
-                                    modification, are permitted provided that the following conditions are met:\
-                                    <p>\
-                                    1. Redistributions of source code must retain the above copyright notice, this\
-                                    list of conditions and the following disclaimer.\
-                                    \
-                                    \
-                                    2. Redistributions in binary form must reproduce the above copyright notice,\
-                                    this list of conditions and the following disclaimer in the documentation\
-                                    and/or other materials provided with the distribution.\
-                                    <p>\
-                                    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\
-                                    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\
-                                    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\
-                                    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR\
-                                    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\
-                                    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\
-                                    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\
-            ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\
-            (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\
-            SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\
-            <p>\
-            The views and conclusions contained in the software and documentation are those\
-            of the authors and should not be interpreted as representing official policies,\
-            either expressed or implied, of the FreeBSD Project.\
-            <p>\
-            REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, \
-            THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.\
-            THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS \
-            PROVIDED \"AS IS\". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,\
-            UPDATES, ENHANCEMENTS, OR MODIFICATIONS.\
-            <p>\
-            ------------------------------------------------------------------------------------\
-            <p>\
-            The compiled binary form of this application is licensed under a GPL Version 3 license.\
-            The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
-            included in the packaging of this application. \
-            <p>\
-            ------------------------------------------------------------------------------------\
-            <p>\
-            This software makes use of the QT packages (unmodified): core, gui, widgets and network\
-                                                                     <p>\
-                                                                     QT is copyright \"The Qt Company Ltd&quot; and licensed under the GNU Lesser General \
-                                                                     Public License (version 3) which references the GNU General Public License (version 3)\
-      <p>\
-      The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
-      included in the packaging of this application. \
-      <p>\
-      ");
-
-      QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    msgBox.setText(copyrightText);
-    QGridLayout *layout = (QGridLayout*)msgBox.layout();
-    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
-    msgBox.exec();
-
-}
-
 
 void MainWindow::updatePlots(bool updateInputMotionFlag)
 {
     ui->AccOutputFig->clear();
-    // ui->AccOutputFig->setLabelFontSize(8);
+    int sz = int(0.7 * ui->AccOutputFig->labelFontSize());
+    ui->AccOutputFig->setLabelFontSize(sz);
 
     ui->FourierOutputFig->clear();
-    // ui->FourierOutputFig->setLabelFontSize(8);
+    ui->FourierOutputFig->setLabelFontSize(sz);
 
     ui->TransferFunctionFig->clear();
-    // ui->TransferFunctionFig->setLabelFontSize(8);
+    ui->TransferFunctionFig->setLabelFontSize(sz);
 
     ui->TransferFunctionFig_TabLayer->clear();
-    // ui->TransferFunctionFig_TabLayer->setLabelFontSize(10);
+    // ui->TransferFunctionFig_TabLayer->setLabelFontSize(int(0.8 * ui->TransferFunctionFig_TabLayer->labelFontSize()));
 
     ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue);
     ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black);
@@ -595,10 +570,10 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
 
     if (updateInputMotionFlag) {
         ui->FourierInputFig->clear();
-        // ui->FourierInputFig->setLabelFontSize(8);
+        ui->FourierInputFig->setLabelFontSize(sz);
 
         ui->AccInputFig->clear();
-        // ui->AccInputFig->setLabelFontSize(8);
+        ui->AccInputFig->setLabelFontSize(sz);
 
         ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
         ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
@@ -632,9 +607,9 @@ void MainWindow::on_addRowBtn_clicked()
     valueListLayer << QString ("Layer %1").arg(ui->tableView->m_sqlModel->rowCount() + 1) << m_defaultThickness << m_defaultDensity << m_defaultVs << DefaultEType << m_defaultDamping;
     emit ui->tableView->insertAbove(valueListLayer);
     ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount()));
-    updateLayerID();
-    onTableViewUpdated();
-    updatePlots(false);
+    this->updateLayerID();
+    this->onTableViewUpdated();
+    this->updatePlots(false);
     // plotLayers();
 }
 
@@ -644,9 +619,9 @@ void MainWindow::on_delRowBtn_clicked()
         emit ui->tableView->removeOneRow(1);
         ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount()));
         ui->totalHeight->setText(QString::number(ui->tableView->m_sqlModel->getTotalHeight()));
-        updateLayerID();
-        onTableViewUpdated();
-        updatePlots(false);
+        this->updateLayerID();
+        this->onTableViewUpdated();
+        this->updatePlots(false);
         // plotLayers();
     }
 }
@@ -665,9 +640,9 @@ void MainWindow::onTableViewUpdated()
 
     // updateSpinBox();
     // emit ui->tableView->onCellSingleClicked(ui->tableView->model()->index(m_activeLayer - 1, 1));
-    plotLayers();
-    updateSoilTF();
-    calculate();
+    this->plotLayers();
+    this->updateSoilTF();
+    this->calculate();
 }
 
 void MainWindow::setActiveLayer(const QModelIndex &index)
@@ -676,8 +651,8 @@ void MainWindow::setActiveLayer(const QModelIndex &index)
     ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
     ui->tableView->setFocus();
     ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
-    plotLayers();
-    updateSpinBox();
+    this->plotLayers();
+    this->updateSpinBox();
 }
 
 void MainWindow::setActiveLayer(int index)
@@ -692,8 +667,8 @@ void MainWindow::on_vsSpinBox_valueChanged(double arg1)
     if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, VS, arg1);
         ui->tableView->update();
-        onTableViewUpdated();
-        updatePlots(false);
+        this->onTableViewUpdated();
+        this->updatePlots(false);
     }
 }
 
@@ -702,8 +677,8 @@ void MainWindow::on_densitySpinBox_valueChanged(double arg1)
     if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, DENSITY, arg1);
         ui->tableView->update();
-        onTableViewUpdated();
-        updatePlots(false);
+        this->onTableViewUpdated();
+        this->updatePlots(false);
     }
 }
 
@@ -712,8 +687,8 @@ void MainWindow::on_thicknessSpinBox_valueChanged(double arg1)
     if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, THICKNESS, arg1);
         ui->tableView->update();
-        onTableViewUpdated();
-        updatePlots(false);
+        this->onTableViewUpdated();
+        this->updatePlots(false);
     }
 }
 
@@ -722,8 +697,8 @@ void MainWindow::on_dampingSpinBox_valueChanged(double arg1)
     if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, ESIZE, arg1); // element size for damping
         ui->tableView->update();
-        onTableViewUpdated();
-        updatePlots(false);
+        this->onTableViewUpdated();
+        this->updatePlots(false);
     }
 }
 
@@ -748,7 +723,6 @@ void MainWindow::updateSoilTF()
     QVector<std::complex<double> > mAAaux(nPt), mBBaux(nPt);
     QVector<double> Nfreq(nPt);
 
-    // m_freq.resize(nPt);
     m_soilTF.resize(nPt);
 
     std::complex<double> kstar;
@@ -926,6 +900,7 @@ void MainWindow::plotLayers()
         plotItemList.append(var);
     }
     plot->setAxisScale(QwtPlot::yLeft, 0, currentBase);
+
     plot->replot();
 }
 
@@ -1032,12 +1007,10 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
     return emptyObj;
 }
 
-
-
 void MainWindow::on_resetFigureBtn_clicked()
 {
     ui->lockAxischeckBox->setChecked(false);
-    updatePlots();
+    this->updatePlots();
 }
 
 void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
@@ -1062,27 +1035,3 @@ void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
     m_yLowLimits[3] = ui->AccOutputFig->minY();
 }
 
-void MainWindow::on_actionProvide_feedback_triggered()
-{
-    QDesktopServices::openUrl(QUrl("https://www.designsafe-ci.org/help/new-ticket/", QUrl::TolerantMode));
-}
-
-void MainWindow::on_actionVersion_triggered()
-{
-    this->version();
-}
-
-void MainWindow::on_actionCopyright_triggered()
-{
-
-}
-
-void MainWindow::on_action_License_triggered()
-{
-
-}
-
-void MainWindow::on_action_About_triggered()
-{
-
-}
