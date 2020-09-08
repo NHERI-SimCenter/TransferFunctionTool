@@ -149,3 +149,14 @@ QLabel#nsfText {
     color: #E0E0E0;
     font: bold 10pt;
 }
+
+QGroupBox {
+    margin-top: 5ex; /* leave space at the top for the title */
+}
+
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left; /* position at the top left */
+    padding: 0 3px;
+}

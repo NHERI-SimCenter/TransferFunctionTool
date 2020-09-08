@@ -45,7 +45,7 @@ private slots:
     void on_btn_sweep_clicked();
     void on_btn_loadMotion_clicked();
     void updateSpinBox();
-
+    void harmonicRecord(double f);
 
     void notifyVsIntValueChanged(int value) {
         double doubleValue = value / 10.0;
@@ -97,12 +97,7 @@ private slots:
         emit intDensityValueChanged(intValue);
     }
 
-    void about();
-    void version();
-    void copyright();
-
     void on_MotionSelectioncomboBox_currentIndexChanged(int index);
-
     void on_addRowBtn_clicked();
     void on_delRowBtn_clicked();
     void onTableViewUpdated();
@@ -114,7 +109,6 @@ private slots:
     void on_densitySpinBox_valueChanged(double arg1);
     void on_thicknessSpinBox_valueChanged(double arg1);
     void on_dampingSpinBox_valueChanged(double arg1);
-
     void on_resetFigureBtn_clicked();
     void on_lockAxischeckBox_stateChanged(int arg1);
 
@@ -122,13 +116,11 @@ private slots:
     void on_actionVersion_triggered();
     void on_actionCopyright_triggered();
     void on_action_License_triggered();
-
     void on_action_About_triggered();
 
 private:
     Ui::MainWindow *ui;
 
-    void createActions();
     void initialTableView();
     void updatePlots(bool updateInputMotionFlag = true);
     void loadFile(const QString &fileName);
@@ -140,7 +132,6 @@ private:
     void ifft(QVector<std::complex<double>> fas, QVector<double>& ts);
     void setFreq();
     void setTime();
-    void sinRecord(double frequency = 5.0);
     void sweepRecord();
     void readGM(QJsonArray accTH, double dT, double accUnit);
 

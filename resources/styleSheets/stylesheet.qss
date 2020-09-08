@@ -129,11 +129,6 @@ QWidget#plotsTab {
 * ======= <SECTION LABEL STYLES> =======
 */
 
-
-/* ---   Styles for TFT    --- */
-/* --- Modified from PGT by Long Chen ---  */
-
-
 BonzaTableView {
     selection-background-color: #f2ffcc;
     /*gridline-color: green;*/
@@ -145,6 +140,3 @@ BonzaTableView {
 BonzaTableView::item:hover {
     background-color: #ccff33;
 }
-
-
-
