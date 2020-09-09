@@ -142,6 +142,7 @@ private:
     double m_defaultDamping = 10.0;
     double m_defaultDensity = 2.0;
     double m_dt;
+    int m_labelFont;
 
     QVector<double> m_accInput;
     QVector<double> m_accOutput;

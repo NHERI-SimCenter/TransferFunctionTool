@@ -88,17 +88,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->AccOutputFig->showAxisControls(false);
     ui->AccOutputFig->setXLabel("Time [s]");
     ui->AccOutputFig->setYLabel("Accel. [g]");
-    int sz = int(0.6 * ui->AccOutputFig->labelFontSize());
+    m_labelFont = int(0.7 * ui->AccOutputFig->labelFontSize());
     ui->AccOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccOutputFig->grid(true,false);
-    ui->AccOutputFig->setTickFontSize(sz);
+    ui->AccOutputFig->setTickFontSize(m_labelFont);
 
     ui->FourierOutputFig->showAxisControls(false);
     ui->FourierOutputFig->setXLabel("Freq. [Hz]");
     ui->FourierOutputFig->setYLabel("FA [g-s]");
     ui->FourierOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierOutputFig->grid(true,false);
-    ui->FourierOutputFig->setTickFontSize(sz);
+    ui->FourierOutputFig->setTickFontSize(m_labelFont);
 
     ui->TransferFunctionFig->showAxisControls(false);
     ui->TransferFunctionFig->setXLabel("Freq. [Hz]");
@@ -106,21 +106,21 @@ MainWindow::MainWindow(QWidget *parent)
     ui->TransferFunctionFig->setXLim(0, 25);
     ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
     ui->TransferFunctionFig->grid(true,false);
-    ui->TransferFunctionFig->setTickFontSize(sz);
+    ui->TransferFunctionFig->setTickFontSize(m_labelFont);
 
     ui->FourierInputFig->showAxisControls(false);
     ui->FourierInputFig->setXLabel("Freq. [Hz]");
     ui->FourierInputFig->setYLabel("FA [g-s]");
     ui->FourierInputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierInputFig->grid(true,false);
-    ui->FourierInputFig->setTickFontSize(sz);
+    ui->FourierInputFig->setTickFontSize(m_labelFont);
 
     ui->AccInputFig->showAxisControls(false);
     ui->AccInputFig->setXLabel("Time [s]");
     ui->AccInputFig->setYLabel("Accel. [g]");
     ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccInputFig->grid(true,false);
-    ui->AccInputFig->setTickFontSize(sz);
+    ui->AccInputFig->setTickFontSize(m_labelFont);
 
     m_xUpLimits.resize(4);
     m_xLowLimits.resize(4);
@@ -552,14 +552,13 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
 void MainWindow::updatePlots(bool updateInputMotionFlag)
 {
     ui->AccOutputFig->clear();
-    int sz = int(0.7 * ui->AccOutputFig->labelFontSize());
-    ui->AccOutputFig->setLabelFontSize(sz);
+    ui->AccOutputFig->setLabelFontSize(m_labelFont);
 
     ui->FourierOutputFig->clear();
-    ui->FourierOutputFig->setLabelFontSize(sz);
+    ui->FourierOutputFig->setLabelFontSize(m_labelFont);
 
     ui->TransferFunctionFig->clear();
-    ui->TransferFunctionFig->setLabelFontSize(sz);
+    ui->TransferFunctionFig->setLabelFontSize(m_labelFont);
 
     ui->TransferFunctionFig_TabLayer->clear();
     // ui->TransferFunctionFig_TabLayer->setLabelFontSize(int(0.8 * ui->TransferFunctionFig_TabLayer->labelFontSize()));
@@ -569,15 +568,43 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
     ui->TransferFunctionFig->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
     ui->TransferFunctionFig_TabLayer->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
 
+    QList<QString> list;
+    list.append("Output (Surface) motion time history");
+    ui->AccOutputFig->legend(list, SimFigure::Location::NorthEast);
+    ui->AccOutputFig->setLegendFontSize(1.5 * m_labelFont);
+
+    list.clear();
+    list.append("Output motion Fourier series");
+    ui->FourierOutputFig->legend(list, SimFigure::Location::NorthEast);
+    ui->FourierOutputFig->setLegendFontSize(1.5 * m_labelFont);
+
+    list.clear();
+    list.append("Transfer Function");
+    ui->TransferFunctionFig->legend(list, SimFigure::Location::NorthEast);
+    ui->TransferFunctionFig->setLegendFontSize(1.5 * m_labelFont);
+    ui->TransferFunctionFig_TabLayer->legend(list, SimFigure::Location::NorthEast);
+    ui->TransferFunctionFig_TabLayer->setLegendFontSize(1.5 * m_labelFont);
+
+
     if (updateInputMotionFlag) {
         ui->FourierInputFig->clear();
-        ui->FourierInputFig->setLabelFontSize(sz);
+        ui->FourierInputFig->setLabelFontSize(m_labelFont);
 
         ui->AccInputFig->clear();
-        ui->AccInputFig->setLabelFontSize(sz);
+        ui->AccInputFig->setLabelFontSize(m_labelFont);
 
         ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
         ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
+
+        list.clear();
+        list.append("Input (Rock) motion time history");
+        ui->AccInputFig->legend(list, SimFigure::Location::NorthEast);
+        ui->AccInputFig->setLegendFontSize(1.5 * m_labelFont);
+
+        list.clear();
+        list.append("Input motion Fourier series");
+        ui->FourierInputFig->legend(list, SimFigure::Location::NorthEast);
+        ui->FourierInputFig->setLegendFontSize(1.5 * m_labelFont);
     }
 
     if (!m_lockAxesFlag) {
