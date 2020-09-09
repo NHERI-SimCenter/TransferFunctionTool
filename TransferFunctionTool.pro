@@ -73,7 +73,7 @@ HEADERS += \
     mainwindow.h
 
 FORMS += \
-    mainwindow.ui
+    TransferFunctionTool.ui
 
 DISTFILES += \
     ConanHelper.pri \
