@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // set up plot for figure tab
+    //ui->TransferFunctionFig_TabLayer->showAxisControls(false); 
     ui->TransferFunctionFig_TabLayer->showAxisControls(false);
     // ui->TransferFunctionFig->setMinimumHeight(150);
     ui->TransferFunctionFig_TabLayer->setXLabel("Freq. [Hz]");
