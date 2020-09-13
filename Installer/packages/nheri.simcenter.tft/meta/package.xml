@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Transfer Function Tool</DisplayName>
+    <Description>Educational tool for the study of the effect off ....</Description>
+    <Version>0.9</Version>
+    <ReleaseDate>2020-07-28</ReleaseDate>
+    <Licenses>
+        <License name="BSD License Agreement" file="license.txt" />
+    </Licenses>
+    <Default>true</Default>
+    <Script>installTFT.qs</Script>
+</Package>
