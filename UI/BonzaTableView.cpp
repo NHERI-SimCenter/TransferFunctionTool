@@ -27,8 +27,8 @@ BonzaTableView::BonzaTableView(QWidget *parent) :
     m_sqlModel->setHeaderData(LayerID, Qt::Horizontal, tr("ID"));
     m_sqlModel->setHeaderData(CHECKED, Qt::Horizontal, tr("√"));
     m_sqlModel->setHeaderData(LAYERNAME, Qt::Horizontal, tr("LayerName"));
-    m_sqlModel->setHeaderData(THICKNESS, Qt::Horizontal, tr("Thickness"));
-    m_sqlModel->setHeaderData(DENSITY, Qt::Horizontal, tr("Density"));
+    m_sqlModel->setHeaderData(THICKNESS, Qt::Horizontal, tr("Thickness (m)"));
+    m_sqlModel->setHeaderData(DENSITY, Qt::Horizontal, tr("Density (Mg/m3)"));
     m_sqlModel->setHeaderData(VS, Qt::Horizontal, tr("Vs (m/s)"));
     m_sqlModel->setHeaderData(MATERIAL, Qt::Horizontal, tr("Material"));
     m_sqlModel->setHeaderData(ESIZE, Qt::Horizontal, tr("Damping (%)"));

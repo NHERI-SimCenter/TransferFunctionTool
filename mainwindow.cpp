@@ -140,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent)
     // initial values
     double max_damping = 30;
     double max_Hs = 200;
-    double max_Vs = 5000;
+    double max_Vs = 8000;
     double max_frequency = 10.0;
     double frequency = 1.0;
     double max_density = 5.0;
@@ -219,14 +219,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tableView, SIGNAL(cellClicked(const QModelIndex&)), this, SLOT(setActiveLayer(const QModelIndex&)));
     // connect(ui->tableView->itemDelegate(),SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),SLOT(updateSpinBox()));
 
-
+    ui->activeLayerlineEdit->setEnabled(false);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
 
     this->initialTableView();
 
-    ui->MotionSelectioncomboBox->addItems({"Motion 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
+    ui->MotionSelectioncomboBox->addItems({"Gilroy 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
     ui->MotionSelectioncomboBox->setCurrentIndex(0);
 
     ui->btn_earthquake->setChecked(true);
@@ -244,7 +244,7 @@ MainWindow::~MainWindow()
 void MainWindow::initialTableView()
 {
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableView->horizontalHeader()->setMinimumHeight(35);
+    ui->tableView->horizontalHeader()->setMinimumHeight(50);
     QList<QVariant> valueListRock;
     valueListRock << "Rock" << "-" << m_defaultDensity << 5000 << DefaultEType << "-";
     ui->tableView->insertAt(valueListRock,0);
@@ -542,7 +542,7 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
     }
 
     ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Output (Surface) Motion Acceleration Time History");
-    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Output Motion Fourier Amplitude");
+    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Output (Surface) Motion Fourier Amplitude");
     ui->TransferFunctionFig->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
     ui->TransferFunctionFig_TabLayer->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
 
@@ -806,7 +806,7 @@ void MainWindow::ifft(QVector<std::complex<double>> fas, QVector<double>& ts)
     status = DftiCreateDescriptor(&descriptor, DFTI_DOUBLE, DFTI_REAL, 1, (fas.size() - 1) * 2); //Specify size and precision
     status = DftiSetValue(descriptor, DFTI_PLACEMENT, DFTI_NOT_INPLACE);
     status = DftiSetValue(descriptor, DFTI_CONJUGATE_EVEN_STORAGE, DFTI_COMPLEX_COMPLEX);
-    status = DftiSetValue(descriptor, DFTI_BACKWARD_SCALE, 1.0f / fas.size()); //Scale down the output
+    status = DftiSetValue(descriptor, DFTI_BACKWARD_SCALE, 0.5f / fas.size()); //Scale down the output
     status = DftiCommitDescriptor(descriptor); //Finalize the descriptor
     status = DftiComputeBackward(descriptor, fas.data(), ts.data()); //Compute the Forward FFT
     status = DftiFreeDescriptor(&descriptor); //Free the descriptor
@@ -815,30 +815,28 @@ void MainWindow::ifft(QVector<std::complex<double>> fas, QVector<double>& ts)
 // Calculate soil transfer function and surface soil response
 void MainWindow::calculate()
 {
-    QVector<double> absSoilTF(m_freq.size());
-
     // Compute the Fourier amplitude spectrum
     QVector<std::complex<double>> fas(m_freq.size());
     fft(m_accInput, fas);
-    QVector<double> absfas(fas.size());
-    for ( int i = 0; i < fas.size(); i++ ) {
-        absfas[i] = abs(fas[i]);
+    m_absFft.resize(fas.size());
+    m_absFft[0] = abs(fas[0]) / m_accInput.size();
+    for ( int i = 1; i < fas.size(); i++ ) {
+        m_absFft[i] = 2 * abs(fas[i]) / m_accInput.size();
     }
-    m_absFft = absfas;
 
-    for ( int i = 0; i < m_freq.size(); i++ ) {
-        absSoilTF[i] = abs(m_soilTF[i]);
+    m_absSoilTF.resize(m_freq.size());
+    for (int i = 0; i < m_freq.size(); i++ ) {
+        m_absSoilTF[i] = abs(m_soilTF[i]);
     }
-    m_absSoilTF = absSoilTF;
 
     // Compute surface soil response
     QVector<std::complex<double>> ifas(m_freq.size());
-    QVector<double> absfas2(ifas.size());
+    m_absIFft.resize(m_freq.size());
+    m_absIFft[0] = abs(ifas[0]) / m_accInput.size();
     for (int i = 0; i < m_freq.size(); i++) {
         ifas[i] = fas[i] * m_soilTF[i];
-        absfas2[i] = abs(ifas[i]);
+        m_absIFft[i] = abs(ifas[i]) * 2 / m_accInput.size();
     }
-    m_absIFft = absfas2;
     QVector<double> accT(m_accInput.size());
     ifft(ifas, accT);
     m_accOutput = accT;
@@ -860,18 +858,18 @@ void MainWindow::plotLayers()
     for (int iLayer = 1; iLayer <= ui->tableView->m_sqlModel->rowCount(); iLayer++) {
         QPolygonF groundCorners;
         if (iLayer == ui->tableView->m_sqlModel->rowCount()) {
-            groundCorners << QPointF(0, currentTop)
-                          << QPointF(1, currentTop)
-                          << QPointF(1, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
-                          << QPointF(0, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
-                          << QPointF(0, currentTop);
+            groundCorners << QPointF(0.25, currentTop)
+                          << QPointF(0.75, currentTop)
+                          << QPointF(0.75, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
+                          << QPointF(0.25, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
+                          << QPointF(0.25, currentTop);
             currentTop += ui->tableView->m_sqlModel->getTotalHeight() * 0.1;
         } else {
-            groundCorners << QPointF(0, currentTop)
-                          << QPointF(1, currentTop)
-                          << QPointF(1, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
-                          << QPointF(0, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
-                          << QPointF(0, currentTop);
+            groundCorners << QPointF(0.25, currentTop)
+                          << QPointF(0.75, currentTop)
+                          << QPointF(0.75, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
+                          << QPointF(0.25, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
+                          << QPointF(0.25, currentTop);
             currentTop += ui->tableView->m_sqlModel->getThickness(iLayer-1);
         }
         QwtPlotShapeItem *layerII = new QwtPlotShapeItem();
