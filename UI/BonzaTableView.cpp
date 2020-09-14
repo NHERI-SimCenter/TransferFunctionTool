@@ -1,4 +1,4 @@
-﻿#include "BonzaTableView.h"
+#include "BonzaTableView.h"
 #include <QHeaderView>
 #include <QFocusEvent>
 #include <QMenu>
@@ -137,15 +137,15 @@ void BonzaTableView::onCellSingleClicked(const QModelIndex &index)
 
     // double click simulator
 
-    // if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL || ic==ESIZE))
-    //     qDebug() << "Rock layer clicked, do nothing.";
-    // else
-    // {
+    if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL || ic==ESIZE))
+        qDebug() << "Rock layer clicked, do nothing.";
+    else
+    {
 
         if (cellDoubleClicked)
             this->edit(m_sqlModel->index(ir, ic));
 
-    // }
+    }
 
 
 

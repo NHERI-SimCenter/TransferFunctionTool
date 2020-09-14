@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setApplicationName("NHERI-TFT");
     QCoreApplication::setOrganizationName("SimCenter");
-    QCoreApplication::setApplicationVersion("0.9");
+    QCoreApplication::setApplicationVersion("1.0.0");
     // window scaling
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 

@@ -60,27 +60,27 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // set up plot for layers
-    plot = new QwtPlot();
+    m_layerPlot = new QwtPlot();
     QGridLayout *plotLayout = new QGridLayout();
-    plotLayout->addWidget(plot, 0, 0);
+    plotLayout->addWidget(m_layerPlot, 0, 0);
     ui->layerGroupBox->setLayout(plotLayout);
 
-    plot->setCanvasBackground(QBrush(Qt::white));
-    plot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
-    plot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
-    plot->enableAxis(QwtPlot::xBottom, false);
+    m_layerPlot->setCanvasBackground(QBrush(Qt::white));
+    m_layerPlot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
+    m_layerPlot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
+    m_layerPlot->enableAxis(QwtPlot::xBottom, false);
 
     QwtText text;
     text.setText("Depth (m)");
     QFont layerPlotfont;
     layerPlotfont.setPointSize(10);
     text.setFont(layerPlotfont);
-    plot->setAxisTitle(QwtPlot::yLeft, text);
+    m_layerPlot->setAxisTitle(QwtPlot::yLeft, text);
 
 
 
     //Picker
-    QwtPicker *picker = new QwtPicker(plot->canvas());
+    QwtPicker *picker = new QwtPicker(m_layerPlot->canvas());
     picker->setStateMachine(new QwtPickerClickPointMachine);
     picker->setTrackerMode(QwtPicker::AlwaysOff);
     picker->setRubberBand(QwtPicker::RectRubberBand);
@@ -88,6 +88,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // Add figures to figures tab
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("TransferFunctionFig_TabLayer"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("AccOutputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("FourierOutputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("TransferFunctionFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("FourierInputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("AccInputFig"));
+
     ui->AccOutputFig->showAxisControls(false);
     ui->AccOutputFig->setXLabel("Time [s]");
     ui->AccOutputFig->setYLabel("Accel. [g]");
@@ -528,40 +535,16 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
 
 void MainWindow::updatePlots(bool updateInputMotionFlag)
 {
-    ui->AccOutputFig->clear();
-    ui->AccOutputFig->setLabelFontSize(m_labelFont);
+    for (int i = 0; i <= 3; i++) {
+        m_figureList[i]->clear();
+        if (i > 0)
+            m_figureList[i]->setLabelFontSize(m_labelFont);
+    }
 
-    ui->FourierOutputFig->clear();
-    ui->FourierOutputFig->setLabelFontSize(m_labelFont);
-
-    ui->TransferFunctionFig->clear();
-    ui->TransferFunctionFig->setLabelFontSize(m_labelFont);
-
-    ui->TransferFunctionFig_TabLayer->clear();
-    // ui->TransferFunctionFig_TabLayer->setLabelFontSize(int(0.8 * ui->TransferFunctionFig_TabLayer->labelFontSize()));
-
-    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue);
-    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black);
-    ui->TransferFunctionFig->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red);
-    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red);
-
-    QList<QString> list;
-    list.append("Output (Surface) motion time history");
-    ui->AccOutputFig->legend(list, SimFigure::Location::NorthEast);
-    ui->AccOutputFig->setLegendFontSize(1.2 * m_labelFont);
-
-    list.clear();
-    list.append("Output motion Fourier series");
-    ui->FourierOutputFig->legend(list, SimFigure::Location::NorthEast);
-    ui->FourierOutputFig->setLegendFontSize(1.2 * m_labelFont);
-
-    list.clear();
-    list.append("Transfer Function");
-    ui->TransferFunctionFig->legend(list, SimFigure::Location::NorthEast);
-    ui->TransferFunctionFig->setLegendFontSize(1.2 * m_labelFont);
-    ui->TransferFunctionFig_TabLayer->legend(list, SimFigure::Location::NorthEast);
-    ui->TransferFunctionFig_TabLayer->setLegendFontSize(1.5 * m_labelFont);
-
+    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Output (Surface) Motion Acceleration Time History");
+    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Output Motion Fourier Amplitude");
+    ui->TransferFunctionFig->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
+    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
 
     if (updateInputMotionFlag) {
         ui->FourierInputFig->clear();
@@ -570,18 +553,8 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
         ui->AccInputFig->clear();
         ui->AccInputFig->setLabelFontSize(m_labelFont);
 
-        ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
-        ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
-
-        list.clear();
-        list.append("Input (Rock) motion time history");
-        ui->AccInputFig->legend(list, SimFigure::Location::NorthEast);
-        ui->AccInputFig->setLegendFontSize(1.2 * m_labelFont);
-
-        list.clear();
-        list.append("Input motion Fourier series");
-        ui->FourierInputFig->legend(list, SimFigure::Location::NorthEast);
-        ui->FourierInputFig->setLegendFontSize(1.2 * m_labelFont);
+        ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Iutput (Bedrock) Motion Fourier Amplitude");
+        ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Iutput (Bedrock) Motion Acceleration Time History");
     }
 
     if (!m_lockAxesFlag) {
@@ -594,15 +567,15 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
             ui->AccInputFig->setXlimits(0, m_time.back());
         }
     } else {
-        ui->TransferFunctionFig_TabLayer->setXlimits(m_xLowLimits[0], m_xUpLimits[0]);
-        ui->TransferFunctionFig_TabLayer->setYlimits(m_yLowLimits[0], m_yUpLimits[0]);
-        qDebug() << m_yUpLimits[0];
-        ui->TransferFunctionFig->setXlimits(m_xLowLimits[1], m_xUpLimits[1]);
-        ui->TransferFunctionFig->setYlimits(m_yLowLimits[1], m_yUpLimits[1]);
-        ui->FourierOutputFig->setXlimits(m_xLowLimits[2], m_xUpLimits[2]);
-        ui->FourierOutputFig->setYlimits(m_yLowLimits[2], m_yUpLimits[2]);
-        ui->AccOutputFig->setXlimits(m_xLowLimits[3], m_xUpLimits[3]);
-        ui->AccOutputFig->setYlimits(m_yLowLimits[3], m_yUpLimits[3]);
+        for (int i = 0; i <= 3; i++) {
+            m_figureList[i]->setXlimits(m_xLowLimits[i], m_xUpLimits[i]);
+            m_figureList[i]->setYlimits(m_yLowLimits[i], m_yUpLimits[i]);
+        }
+    }
+    for (int i = 0; i <= 5; i++) {
+        m_figureList[i]->showLegend();
+        m_figureList[i]->setLegendFontSize(1.2 * m_labelFont);
+        m_figureList[i]->moveLegend(SimFigure::Location::NorthEast);
     }
 }
 
@@ -744,14 +717,13 @@ void MainWindow::updateSoilTF()
 
     m_soilTF.resize(nPt);
 
-    std::complex<double> kstar;
-    std::complex<double> Vsstar;
+    std::complex<double> kstar;  // complex wave number
+    std::complex<double> Vsstar;  // complex shear wave velocity
     std::complex<double> kHstar;
-    std::complex<double> alphastar;
+    std::complex<double> alphastar;  // complex impedance ratio
     std::complex<double> mExpA;
     std::complex<double> mExpB;
     std::complex<double> One;
-    std::complex<double> AAA;
 
     One = std::complex<double>(1,0);
     freq[0]=0.0;
@@ -788,7 +760,7 @@ void MainWindow::updateSoilTF()
 
         for (int ii = 0; ii < nPt; ii++ ){
             double km = 2.0* M_PI *freq[ii]/Vs/(1.0+Psi*Psi);
-            double kmHH = km*HH;
+            // double kmHH = km*HH;
             kstar = std::complex<double>(km, -km*Psi);
             Vsstar = std::complex<double>(Vs, Vs*Psi);
             kHstar = std::complex<double>(km*HH*Psi, km*HH);
@@ -883,7 +855,7 @@ void MainWindow::plotLayers()
     //
     // Plot Ground Layers
     //
-    plot->detachItems();
+    m_layerPlot->detachItems();
     double currentTop = 0;
     for (int iLayer = 1; iLayer <= ui->tableView->m_sqlModel->rowCount(); iLayer++) {
         QPolygonF groundCorners;
@@ -913,14 +885,14 @@ void MainWindow::plotLayers()
         }
 
         layerII->setPolygon(groundCorners);
-        layerII->attach(plot);
+        layerII->attach(m_layerPlot);
 
         PLOTOBJECT var;
         var.itemPtr = layerII;
         var.index   = iLayer;
         plotItemList.append(var);
     }
-    plot->setAxisScale(QwtPlot::yLeft, currentTop, 0);
+    m_layerPlot->setAxisScale(QwtPlot::yLeft, currentTop, 0);
 
     QwtText text;
     text.setText("Rock");
@@ -932,9 +904,9 @@ void MainWindow::plotLayers()
     rockLabel->setLabel(text);
     rockLabel->setXValue(0.5);
     rockLabel->setYValue(1.05 * ui->tableView->m_sqlModel->getTotalHeight());
-    rockLabel->attach(plot);
+    rockLabel->attach(m_layerPlot);
 
-    plot->replot();
+    m_layerPlot->replot();
 }
 
 
@@ -955,15 +927,15 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
     emptyObj.itemPtr = nullptr;
     emptyObj.index   = -1;
 
-    if ( plot == nullptr )
+    if ( m_layerPlot == nullptr )
         return emptyObj;
 
     // translate pos into the plot coordinates
     double coords[ QwtPlot::axisCnt ];
-    coords[ QwtPlot::xBottom ] = plot->canvasMap( QwtPlot::xBottom ).invTransform( pos.x() );
-    coords[ QwtPlot::xTop ]    = plot->canvasMap( QwtPlot::xTop ).invTransform( pos.x() );
-    coords[ QwtPlot::yLeft ]   = plot->canvasMap( QwtPlot::yLeft ).invTransform( pos.y() );
-    coords[ QwtPlot::yRight ]  = plot->canvasMap( QwtPlot::yRight ).invTransform( pos.y() );
+    coords[ QwtPlot::xBottom ] = m_layerPlot->canvasMap( QwtPlot::xBottom ).invTransform( pos.x() );
+    coords[ QwtPlot::xTop ]    = m_layerPlot->canvasMap( QwtPlot::xTop ).invTransform( pos.x() );
+    coords[ QwtPlot::yLeft ]   = m_layerPlot->canvasMap( QwtPlot::yLeft ).invTransform( pos.y() );
+    coords[ QwtPlot::yRight ]  = m_layerPlot->canvasMap( QwtPlot::yRight ).invTransform( pos.y() );
 
     for ( int i = plotItemList.size() - 1; i >= 0; i-- )
     {
@@ -986,13 +958,13 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
                     double x, y;
 
                     pnt = curveItem->sample(line);
-                    x = plot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
-                    y = plot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
+                    x = m_layerPlot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
+                    y = m_layerPlot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
                     QPointF x0(x,y);
 
                     pnt = curveItem->sample(line+1);
-                    x = plot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
-                    y = plot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
+                    x = m_layerPlot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
+                    y = m_layerPlot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
                     QPointF x1(x,y);
 
                     QPointF r  = pos - x0;
@@ -1049,22 +1021,12 @@ void MainWindow::on_resetFigureBtn_clicked()
 void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
 {
     m_lockAxesFlag = arg1;
-    // record current axis limits
-    m_xUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxX();
-    m_xLowLimits[0] = ui->TransferFunctionFig_TabLayer->minX();
-    m_yUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxY();
-    m_yLowLimits[0] = ui->TransferFunctionFig_TabLayer->minY();
-    m_xUpLimits[1] = ui->TransferFunctionFig->maxX();
-    m_xLowLimits[1] = ui->TransferFunctionFig->minX();
-    m_yUpLimits[1] = ui->TransferFunctionFig->maxY();
-    m_yLowLimits[1] = ui->TransferFunctionFig->minY();
-    m_xUpLimits[2] = ui->FourierOutputFig->maxX();
-    m_xLowLimits[2] = ui->FourierOutputFig->minX();
-    m_yUpLimits[2] = ui->FourierOutputFig->maxY();
-    m_yLowLimits[2] = ui->FourierOutputFig->minY();
-    m_xUpLimits[3] = ui->AccOutputFig->maxX();
-    m_xLowLimits[3] = ui->AccOutputFig->minX();
-    m_yUpLimits[3] = ui->AccOutputFig->maxY();
-    m_yLowLimits[3] = ui->AccOutputFig->minY();
+
+    for (int i = 0; i <= 3; i++) {
+        m_xUpLimits[i] = m_figureList[i]->maxX();
+        m_xLowLimits[i] = m_figureList[i]->minX();
+        m_yUpLimits[i] = m_figureList[i]->maxY();
+        m_yLowLimits[i] = m_figureList[i]->minY();
+    }
 }
 
