@@ -1,4 +1,4 @@
-﻿#include "BonzaTableView.h"
+#include "BonzaTableView.h"
 #include <QHeaderView>
 #include <QFocusEvent>
 #include <QMenu>
@@ -27,8 +27,8 @@ BonzaTableView::BonzaTableView(QWidget *parent) :
     m_sqlModel->setHeaderData(LayerID, Qt::Horizontal, tr("ID"));
     m_sqlModel->setHeaderData(CHECKED, Qt::Horizontal, tr("√"));
     m_sqlModel->setHeaderData(LAYERNAME, Qt::Horizontal, tr("LayerName"));
-    m_sqlModel->setHeaderData(THICKNESS, Qt::Horizontal, tr("Thickness"));
-    m_sqlModel->setHeaderData(DENSITY, Qt::Horizontal, tr("Density"));
+    m_sqlModel->setHeaderData(THICKNESS, Qt::Horizontal, tr("Thickness (m)"));
+    m_sqlModel->setHeaderData(DENSITY, Qt::Horizontal, tr("Density (Mg/m3)"));
     m_sqlModel->setHeaderData(VS, Qt::Horizontal, tr("Vs (m/s)"));
     m_sqlModel->setHeaderData(MATERIAL, Qt::Horizontal, tr("Material"));
     m_sqlModel->setHeaderData(ESIZE, Qt::Horizontal, tr("Damping (%)"));
@@ -137,15 +137,15 @@ void BonzaTableView::onCellSingleClicked(const QModelIndex &index)
 
     // double click simulator
 
-    // if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL || ic==ESIZE))
-    //     qDebug() << "Rock layer clicked, do nothing.";
-    // else
-    // {
+    if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL))
+        qDebug() << "Rock layer clicked, do nothing.";
+    else
+    {
 
         if (cellDoubleClicked)
             this->edit(m_sqlModel->index(ir, ic));
 
-    // }
+    }
 
 
 
