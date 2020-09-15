@@ -14,5 +14,7 @@
         <file>resources/styleSheets/Win.qss</file>
         <file>resources/styleSheets/Mac.qss</file>
         <file>resources/styleSheets/Linux.qss</file>
+        <file>resources/textLicense.html</file>
+        <file>resources/textCopyright.html</file>
     </qresource>
 </RCC>
