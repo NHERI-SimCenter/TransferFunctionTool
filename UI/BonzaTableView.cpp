@@ -137,7 +137,7 @@ void BonzaTableView::onCellSingleClicked(const QModelIndex &index)
 
     // double click simulator
 
-    if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL || ic==ESIZE))
+    if ( ir==(numRows-1) && (ic==LAYERNAME || ic==THICKNESS || ic==MATERIAL))
         qDebug() << "Rock layer clicked, do nothing.";
     else
     {

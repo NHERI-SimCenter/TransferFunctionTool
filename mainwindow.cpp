@@ -246,7 +246,7 @@ void MainWindow::initialTableView()
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tableView->horizontalHeader()->setMinimumHeight(50);
     QList<QVariant> valueListRock;
-    valueListRock << "Rock" << "-" << m_defaultDensity << 5000 << DefaultEType << "-";
+    valueListRock << "Rock" << tr("\xE2\x88\x9E") << m_defaultDensity << 5000 << DefaultEType << m_defaultDamping;
     ui->tableView->insertAt(valueListRock,0);
 
     QList<QVariant> valueList;
@@ -498,10 +498,10 @@ void MainWindow::loadFile(const QString &fileName)
 
     if (events.size()>0)
     {
-        QJsonArray patterns = events[0].toObject()["pattern"].toArray();
+        // QJsonArray patterns = events[0].toObject()["pattern"].toArray();
         QJsonArray timeseries = events[0].toObject()["timeSeries"].toArray();
-        QString type = patterns[0].toObject()["type"].toString();
-        QString tsname = patterns[0].toObject()["timeSeries"].toString();
+        // QString type = patterns[0].toObject()["type"].toString();
+        // QString tsname = patterns[0].toObject()["timeSeries"].toString();
 
         QJsonObject units = events[0].toObject()["units"].toObject();
         double accUnit = 1.0;
@@ -630,14 +630,10 @@ void MainWindow::setActiveLayer(const QModelIndex &index)
         ui->activeLayerlineEdit->setText("Bedrock");
         ui->thicknessSlider->setEnabled(false);
         ui->thicknessSpinBox->setEnabled(false);
-        ui->dampingSlider->setEnabled(false);
-        ui->dampingSpinBox->setEnabled(false);
     } else {
         ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
         ui->thicknessSlider->setEnabled(true);
         ui->thicknessSpinBox->setEnabled(true);
-        ui->dampingSlider->setEnabled(true);
-        ui->dampingSpinBox->setEnabled(true);
     }
     ui->tableView->setFocus();
     ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
@@ -684,7 +680,7 @@ void MainWindow::on_thicknessSpinBox_valueChanged(double arg1)
 
 void MainWindow::on_dampingSpinBox_valueChanged(double arg1)
 {
-    if (ui->tableView->m_sqlModel->rowCount() > m_activeLayer) {
+    if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, ESIZE, arg1); // element size for damping
         ui->tableView->update();
         this->onTableViewUpdated();
@@ -696,8 +692,8 @@ void MainWindow::updateSpinBox()
 {
     ui->vsSpinBox->setValue(ui->tableView->m_sqlModel->getVS(m_activeLayer-1));
     ui->densitySpinBox->setValue(ui->tableView->m_sqlModel->getDensity(m_activeLayer-1));
+    ui->dampingSpinBox->setValue(ui->tableView->m_sqlModel->getESize(m_activeLayer-1));
     if (ui->tableView->m_sqlModel->rowCount() > m_activeLayer) {
-        ui->dampingSpinBox->setValue(ui->tableView->m_sqlModel->getESize(m_activeLayer-1));
         ui->thicknessSpinBox->setValue(ui->tableView->m_sqlModel->getThickness(m_activeLayer-1));
     }
 }
