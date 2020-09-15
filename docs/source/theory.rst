@@ -43,6 +43,25 @@ The period of vibration corresponding to the fundamental frequency is called the
 
 Evaluation of Transfer function
 -------------------------------------------------------------
+Within the profile, both upward and downward travelling waves exist due to reflection at each layer boundary (refraction 
+is ignored in 1D assumption). When the bedrock is rigid, any downward travelling waves in the soil will be completely reflected back toward the 
+ground surface. Thus all elastic wave energy is trapped in the system. Elastic bedrock, on the other hand, will only reflects part of the
+downward travelling waves that reaches the soil-rock interface; part of elastic wave energy is transmitted through the interface and lost from
+the system. This is a form of radiation damping and it causes the free surface motion amplitudes to be smaller than those for the case of 
+rigid bedrock. The fraction of reflected waves depends on the *complex impedance ratio*, :math:`\alpha_z`, that is defined as,
+
+.. math::
+	\frac{G^*_mk^*_m}{G^*_{m+1}k^*_{m+1}} = \frac{\rho_m(v_s^*)_m}{\rho_{m+1}(v_s^*)_{m+1}} \,,
+
+where :math:`G^*,\,k^*,\,v_s^*` are complex shear modulus, complex wave number, and complex shear wave velocity, respectively.
+
+.. figure:: ./images/schematic.png
+    :scale: 20 %
+    :align: center
+    :figclass: align-center
+
+    Schematic for a layered soil deposit on rock
+
 :cite:`Kramer1996` presents details about evaluation of transfer functions for four different cases by varing the assumptions for soil and 
 bedrock, respectively. These cases can be replicated using this tool: 
 
@@ -86,12 +105,6 @@ Layered, damped soil on elastic rock
 
     Transfer function for layered, damped soil on elastic rock
 
-.. figure:: ./images/schematic.png
-    :scale: 20 %
-    :align: center
-    :figclass: align-center
-
-    Schematic for a layered soil deposit on elastic rock
 
 
 Rigid bedrock vs. elastic bedrock

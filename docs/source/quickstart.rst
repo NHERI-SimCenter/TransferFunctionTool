@@ -51,6 +51,9 @@ Select a different input motion
 Several input motions are pre-included in this tool including earthquake recordings, harmonic vibration, as well as frequency sweep time series. The frequency lineedit and 
 slider can be used to vary the frequency of the harmonic vibration, thus will only be enabled when this motion is selected. 
 
+Additional motions can also be imported and viewed in this tool by checking the *Load User Motion* option. Current version only supports JSON version. Examples of input
+motion json file can be found at `in the repository <https://github.com/NHERI-SimCenter/TransferFunctionTool/tree/master/resources/motions>`_.
+
 Lock axes 
 -------------------------------------------------
 By default, the axis limits of each figure are replotted after any changes in properties or motion. However, these limits can be locked by checking the "Lock Axes" checkbox. Then the 
