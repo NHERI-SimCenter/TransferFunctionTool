@@ -22,9 +22,9 @@ soil properties on wave propagation through layered media and its application to
    :maxdepth: 2
    :caption: Contents:
    
-   license
    quickstart
    theory
    how_to_build
+   license
 
 

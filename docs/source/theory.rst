@@ -1,7 +1,9 @@
 
 
-Theory
+Theory and Examples
 ==========================
+This page describes basic concepts of one-dimensional ground response analysis and the usage transfer function. For more details, the user is encounged to read :cite:`Kramer1996`.
+
 
 One-dimensional ground response analysis
 --------------------------------------------
@@ -39,8 +41,50 @@ The period of vibration corresponding to the fundamental frequency is called the
 .. math::
 	T_s = \frac{2\pi}{\omega_0} = \frac{4H}{v_s}
 
-Transfer function for layered, damped soil on elastic rock
+Evaluation of Transfer function
 -------------------------------------------------------------
+:cite:`Kramer1996` presents details about evaluation of transfer functions for four different cases by varing the assumptions for soil and 
+bedrock, respectively. These cases can be replicated using this tool: 
+
+Unifom, undamped soil on rigid rock
+*************************************
+
+.. figure:: ./images/case1.png
+    :scale: 20 %
+    :align: center
+    :figclass: align-center
+
+    Transfer function for an uniform, undamped soil on rigid rock
+
+Uniform, damped soil on rigid rock
+*************************************
+
+.. figure:: ./images/case2.png
+    :scale: 20 %
+    :align: center
+    :figclass: align-center
+
+    Transfer function for an uniform, damped soil on rigid rock
+
+Unifom, damped soil on elastic rock
+*************************************
+
+.. figure:: ./images/case3.png
+    :scale: 20 %
+    :align: center
+    :figclass: align-center
+
+    Transfer function for an uniform, damped soil on elastic rock with impedance ratio = 0.5
+
+Layered, damped soil on elastic rock
+*************************************
+
+.. figure:: ./images/case4.png
+    :scale: 20 %
+    :align: center
+    :figclass: align-center
+
+    Transfer function for layered, damped soil on elastic rock
 
 .. figure:: ./images/schematic.png
     :scale: 20 %
@@ -50,5 +94,13 @@ Transfer function for layered, damped soil on elastic rock
     Schematic for a layered soil deposit on elastic rock
 
 
+Rigid bedrock vs. elastic bedrock
+----------------------------------------------------
+Bedrock can be modeled as rigid or elastic half space and it depends on the input motion. Rigid bedrock is used to apply within motion, that is recorded
+in an downhole. While elastic bedrock is used to apply rock outcrop motion, that is recorded at rock outcrop. In this tool, rigid bedrock is mimicked by
+increasing stiffness (shear wave velocity and/or density) of the bedrock.
+
+
+.. bibliography:: references.bib
 
 

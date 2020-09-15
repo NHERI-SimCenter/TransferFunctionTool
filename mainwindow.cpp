@@ -703,7 +703,7 @@ void MainWindow::updateSpinBox()
 }
 
 // ------------------------------------------------------------------------
-// calculate transfer function
+// calculate transfer function, contributed by Pedro Arduino at University of Washington
 void MainWindow::updateSoilTF()
 {
     double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
