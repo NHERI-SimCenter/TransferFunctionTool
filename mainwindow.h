@@ -158,12 +158,8 @@ private:
     QVector<double> m_yLowLimits;
 
 
-    QwtPlot *plot;
-    SimFigure *AccOFig;
-    SimFigure *FOFig;
-    SimFigure *HFig;
-    SimFigure *AccIFig;
-    SimFigure *FIFig;
+    QwtPlot *m_layerPlot;
+    QList<SimFigure*> m_figureList;
 
     QMenu *fileMenu;
     QMenu *editMenu;
