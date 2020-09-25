@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // set up plot for figure tab
-    ui->TransferFunctionFig_TabLayer->showAxisControls(false);
+    ui->TransferFunctionFig_TabLayer->showAxisControls(false); 
     // ui->TransferFunctionFig->setMinimumHeight(150);
     ui->TransferFunctionFig_TabLayer->setXLabel("Freq. [Hz]");
     ui->TransferFunctionFig_TabLayer->setYLabel("[H]");
@@ -423,7 +423,9 @@ void MainWindow::harmonicRecord(double f)
 
     for (int i=0; i < nPoints; i++) {
         s+=m_dt;
+        //m_accInput[i] = 0.4 * sin(2 * f * M_PI * s);
         m_accInput[i] = 0.4 * sin(2 * f * M_PI * s);
+
     }
 
     this->setTime();
