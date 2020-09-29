@@ -60,31 +60,37 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // set up plot for layers
+    m_layerPlot = nullptr;
+
     m_layerPlot = new QwtPlot();
-    QGridLayout *plotLayout = new QGridLayout();
-    plotLayout->addWidget(m_layerPlot, 0, 0);
-    ui->layerGroupBox->setLayout(plotLayout);
 
-    m_layerPlot->setCanvasBackground(QBrush(Qt::white));
-    m_layerPlot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
-    m_layerPlot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
-    m_layerPlot->enableAxis(QwtPlot::xBottom, false);
+    if (m_layerPlot) {
 
-    QwtText text;
-    text.setText("Depth (m)");
-    QFont layerPlotfont;
-    layerPlotfont.setPointSize(10);
-    text.setFont(layerPlotfont);
-    m_layerPlot->setAxisTitle(QwtPlot::yLeft, text);
+        m_layerPlot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+        QGridLayout *plotLayout = new QGridLayout();
+        plotLayout->addWidget(m_layerPlot, 0, 0);
+        ui->layerGroupBox->setLayout(plotLayout);
 
+        m_layerPlot->setCanvasBackground(QBrush(Qt::white));
+        m_layerPlot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
+        m_layerPlot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
+        m_layerPlot->enableAxis(QwtPlot::xBottom, false);
 
-    //Picker
-    QwtPicker *picker = new QwtPicker(m_layerPlot->canvas());
-    picker->setStateMachine(new QwtPickerClickPointMachine);
-    picker->setTrackerMode(QwtPicker::AlwaysOff);
-    picker->setRubberBand(QwtPicker::RectRubberBand);
-    connect(picker, SIGNAL(appended(const QPoint &)), this, SLOT(on_picker_appended(const QPoint &)));
+        QwtText text;
+        text.setText("Depth (m)");
+        QFont layerPlotfont;
+        layerPlotfont.setPointSize(10);
+        text.setFont(layerPlotfont);
+        m_layerPlot->setAxisTitle(QwtPlot::yLeft, text);
+
+        //Picker
+        QwtPicker *picker = new QwtPicker(m_layerPlot->canvas());
+        picker->setStateMachine(new QwtPickerClickPointMachine);
+        picker->setTrackerMode(QwtPicker::AlwaysOff);
+        picker->setRubberBand(QwtPicker::RectRubberBand);
+        connect(picker, SIGNAL(appended(const QPoint &)), this, SLOT(on_picker_appended(const QPoint &)));
+    }
 
     // ------------------------------------------------------------------------
     // Add figures to figures tab
@@ -222,6 +228,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->activeLayerlineEdit->setEnabled(false);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
 
     this->initialTableView();
@@ -349,6 +357,8 @@ void MainWindow::on_btn_earthquake_clicked()
     ui->frequencySlider->setEnabled(false);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     ui->MotionSelectioncomboBox->currentIndex();
     this->loadFile(QString (":/resources/motions/motion%1.json").arg(ui->MotionSelectioncomboBox->currentIndex() + 1));
@@ -370,10 +380,14 @@ void MainWindow::on_btn_sine_clicked()
 {
     ui->MotionSelectioncomboBox->setEnabled(false);
     ui->frequencySpinBox->setReadOnly(false);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->frequencySpinBox->setStyleSheet("QDoubleSpinBox {background-color: lightGray; color: black;}");
     ui->frequencySlider->setEnabled(true);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     this->harmonicRecord(ui->frequencySpinBox->value());
     ui->tabWidget->setCurrentIndex(1);
@@ -383,10 +397,14 @@ void MainWindow::on_btn_sweep_clicked()
 {
     ui->MotionSelectioncomboBox->setEnabled(false);
     ui->frequencySpinBox->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->frequencySpinBox->setStyleSheet("QDoubleSpinBox {background-color: lightGray; color: white;}");
     ui->frequencySlider->setEnabled(false);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
     this->sweepRecord();
     this->updatePlots();
@@ -399,6 +417,8 @@ void MainWindow::on_btn_loadMotion_clicked()
     ui->loadMotion->setEnabled(true);
     ui->userMotionFile->setReadOnly(false);
     ui->userMotionFile->setReadOnly(false);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: black;}");
     ui->tabWidget->setCurrentIndex(1);
 }
@@ -407,6 +427,8 @@ void MainWindow::on_loadMotion_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this);
     ui->frequencySpinBox->setReadOnly(true);
+
+    // pmh 2 long -- The next statement belongs into the resource file !!!!
     ui->frequencySpinBox->setStyleSheet("QDoubleSpinBox {background-color: lightGray; color: white;}");
     ui->frequencySlider->setEnabled(false);
     if (!fileName.isEmpty())
@@ -848,6 +870,8 @@ void MainWindow::calculate()
 // The following part of code is modified from PGT
 void MainWindow::plotLayers()
 {
+    if (!m_layerPlot) return;
+
     foreach (PLOTOBJECT item, plotItemList) {
         item.itemPtr->detach();
         delete item.itemPtr;
