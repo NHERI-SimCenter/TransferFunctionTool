@@ -47,7 +47,7 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1,3">
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,2,9">
        <property name="spacing">
         <number>6</number>
        </property>
@@ -146,7 +146,7 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>55</height>
+              <height>0</height>
              </size>
             </property>
             <property name="title">
@@ -351,7 +351,7 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>55</height>
+              <height>0</height>
              </size>
             </property>
             <property name="title">
@@ -505,7 +505,7 @@
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>55</height>
+              <height>0</height>
              </size>
             </property>
             <property name="title">
@@ -588,7 +588,7 @@
           </font>
          </property>
          <property name="title">
-          <string>Soil Layer</string>
+          <string>Layer Plot</string>
          </property>
         </widget>
        </item>
@@ -752,7 +752,7 @@
          </widget>
          <widget class="QWidget" name="plotsTab">
           <attribute name="title">
-           <string>Plots</string>
+           <string>Motion Plots</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_10">
            <property name="leftMargin">
@@ -838,7 +838,7 @@
      <x>0</x>
      <y>0</y>
      <width>1574</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Help">
@@ -850,6 +850,7 @@
     <addaction name="actionCopyright"/>
     <addaction name="action_License"/>
     <addaction name="actionProvide_feedback"/>
+    <addaction name="actionDocumentation"/>
    </widget>
    <addaction name="menu_Help"/>
   </widget>
@@ -876,6 +877,11 @@
   <action name="actionCopyright">
    <property name="text">
     <string>Copyright</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
    </property>
   </action>
  </widget>

@@ -1,7 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "ui_TransferFunctionTool.h"
 
 #include <cmath>
 #include <mkl_dfti.h>
@@ -32,6 +32,7 @@
 #include "qwt_picker_machine.h"
 #include "qwt_plot_shapeitem.h"
 #include "qwt_plot_curve.h"
+#include "qwt_plot_marker.h"
 #include "Utils/dialogabout.h"
 #include <algorithm>
 
@@ -52,32 +53,34 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // set up plot for figure tab
-    ui->TransferFunctionFig_TabLayer->showAxisControls(false);
+    ui->TransferFunctionFig_TabLayer->showAxisControls(false); 
     // ui->TransferFunctionFig->setMinimumHeight(150);
     ui->TransferFunctionFig_TabLayer->setXLabel("Freq. [Hz]");
     ui->TransferFunctionFig_TabLayer->setYLabel("[H]");
 
     // ------------------------------------------------------------------------
     // set up plot for layers
-    plot = new QwtPlot(this);
+    m_layerPlot = new QwtPlot();
     QGridLayout *plotLayout = new QGridLayout();
-    plotLayout->addWidget(plot, 0, 0);
+    plotLayout->addWidget(m_layerPlot, 0, 0);
     ui->layerGroupBox->setLayout(plotLayout);
 
-    plot->setCanvasBackground(QBrush(Qt::white));
-    plot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
-    plot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
-    plot->enableAxis(QwtPlot::xBottom, false);
+    m_layerPlot->setCanvasBackground(QBrush(Qt::white));
+    m_layerPlot->setAxisScale(QwtPlot::xBottom, 0, 1, 1);
+    m_layerPlot->setAxisScale(QwtPlot::yLeft, 0, m_defaultThickness, 0.5);
+    m_layerPlot->enableAxis(QwtPlot::xBottom, false);
 
     QwtText text;
-    text.setText("Thickness (m)");
+    text.setText("Depth (m)");
     QFont layerPlotfont;
     layerPlotfont.setPointSize(10);
     text.setFont(layerPlotfont);
-    plot->setAxisTitle(QwtPlot::yLeft, text);
+    m_layerPlot->setAxisTitle(QwtPlot::yLeft, text);
+
+
 
     //Picker
-    QwtPicker *picker = new QwtPicker(plot->canvas());
+    QwtPicker *picker = new QwtPicker(m_layerPlot->canvas());
     picker->setStateMachine(new QwtPickerClickPointMachine);
     picker->setTrackerMode(QwtPicker::AlwaysOff);
     picker->setRubberBand(QwtPicker::RectRubberBand);
@@ -85,20 +88,27 @@ MainWindow::MainWindow(QWidget *parent)
 
     // ------------------------------------------------------------------------
     // Add figures to figures tab
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("TransferFunctionFig_TabLayer"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("AccOutputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("FourierOutputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("TransferFunctionFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("FourierInputFig"));
+    m_figureList.push_back(ui->centralwidget->findChild<SimFigure*>("AccInputFig"));
+
     ui->AccOutputFig->showAxisControls(false);
     ui->AccOutputFig->setXLabel("Time [s]");
     ui->AccOutputFig->setYLabel("Accel. [g]");
-    int sz = int(0.6 * ui->AccOutputFig->labelFontSize());
+    m_labelFont = int(0.7 * ui->AccOutputFig->labelFontSize());
     ui->AccOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccOutputFig->grid(true,false);
-    ui->AccOutputFig->setTickFontSize(sz);
+    ui->AccOutputFig->setTickFontSize(m_labelFont);
 
     ui->FourierOutputFig->showAxisControls(false);
     ui->FourierOutputFig->setXLabel("Freq. [Hz]");
     ui->FourierOutputFig->setYLabel("FA [g-s]");
     ui->FourierOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierOutputFig->grid(true,false);
-    ui->FourierOutputFig->setTickFontSize(sz);
+    ui->FourierOutputFig->setTickFontSize(m_labelFont);
 
     ui->TransferFunctionFig->showAxisControls(false);
     ui->TransferFunctionFig->setXLabel("Freq. [Hz]");
@@ -106,21 +116,21 @@ MainWindow::MainWindow(QWidget *parent)
     ui->TransferFunctionFig->setXLim(0, 25);
     ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
     ui->TransferFunctionFig->grid(true,false);
-    ui->TransferFunctionFig->setTickFontSize(sz);
+    ui->TransferFunctionFig->setTickFontSize(m_labelFont);
 
     ui->FourierInputFig->showAxisControls(false);
     ui->FourierInputFig->setXLabel("Freq. [Hz]");
     ui->FourierInputFig->setYLabel("FA [g-s]");
     ui->FourierInputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierInputFig->grid(true,false);
-    ui->FourierInputFig->setTickFontSize(sz);
+    ui->FourierInputFig->setTickFontSize(m_labelFont);
 
     ui->AccInputFig->showAxisControls(false);
     ui->AccInputFig->setXLabel("Time [s]");
     ui->AccInputFig->setYLabel("Accel. [g]");
     ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccInputFig->grid(true,false);
-    ui->AccInputFig->setTickFontSize(sz);
+    ui->AccInputFig->setTickFontSize(m_labelFont);
 
     m_xUpLimits.resize(4);
     m_xLowLimits.resize(4);
@@ -130,9 +140,9 @@ MainWindow::MainWindow(QWidget *parent)
     // initial values
     double max_damping = 30;
     double max_Hs = 200;
-    double max_Vs = 1000;
-    double max_frequency = 30.0;
-    double frequency = 5.0;
+    double max_Vs = 8000;
+    double max_frequency = 10.0;
+    double frequency = 1.0;
     double max_density = 5.0;
 
     // ------------------------------------------------------------------------
@@ -209,14 +219,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tableView, SIGNAL(cellClicked(const QModelIndex&)), this, SLOT(setActiveLayer(const QModelIndex&)));
     // connect(ui->tableView->itemDelegate(),SIGNAL(closeEditor(QWidget*,QAbstractItemDelegate::EndEditHint)),SLOT(updateSpinBox()));
 
-
+    ui->activeLayerlineEdit->setEnabled(false);
     ui->loadMotion->setEnabled(false);
     ui->userMotionFile->setReadOnly(true);
     ui->userMotionFile->setStyleSheet("QLineEdit {background-color: lightGray; color: white;}");
 
     this->initialTableView();
 
-    ui->MotionSelectioncomboBox->addItems({"Motion 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
+    ui->MotionSelectioncomboBox->addItems({"Gilroy 1", "RSN766", "RSN963", "RSN1203", "ElCentro", "Rinaldi"});
     ui->MotionSelectioncomboBox->setCurrentIndex(0);
 
     ui->btn_earthquake->setChecked(true);
@@ -234,10 +244,15 @@ MainWindow::~MainWindow()
 void MainWindow::initialTableView()
 {
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableView->horizontalHeader()->setMinimumHeight(30);
-    QList<QVariant> valueListLayer;
-    valueListLayer << QString ("Layer %1").arg(ui->tableView->m_sqlModel->rowCount() + 1) << m_defaultThickness << m_defaultDensity << m_defaultVs << DefaultEType << m_defaultDamping;
-    ui->tableView->insertAt(valueListLayer,0);
+    ui->tableView->horizontalHeader()->setMinimumHeight(50);
+    QList<QVariant> valueListRock;
+    valueListRock << "Rock" << tr("\xE2\x88\x9E") << m_defaultDensity << 5000 << DefaultEType << m_defaultDamping;
+    ui->tableView->insertAt(valueListRock,0);
+
+    QList<QVariant> valueList;
+    valueList << "Layer 1" << m_defaultThickness << m_defaultDensity << m_defaultVs << DefaultEType << m_defaultDamping;
+    ui->tableView->insertAt(valueList,0);
+
     ui->tableView->setTotalHeight(m_defaultThickness);
     ui->totalLayerLineEdit->setText("1");
     ui->totalHeight->setText(QString::number(ui->tableView->totalHeight()));
@@ -246,12 +261,17 @@ void MainWindow::initialTableView()
 
 void MainWindow::on_actionProvide_feedback_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://www.designsafe-ci.org/help/new-ticket/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://simcenter-messageboard.designsafe-ci.org/smf/index.php?board=11.0", QUrl::TolerantMode));
+}
+
+void MainWindow::on_actionDocumentation_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://nheri-simcenter.github.io/TFT-Documentation/", QUrl::TolerantMode));
 }
 
 void MainWindow::on_actionVersion_triggered()
 {
-    QString versionText("Version 1.0");
+    QString versionText("Version 1.0.0");
     QMessageBox msgBox;
     QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
     msgBox.setText(versionText);
@@ -262,73 +282,42 @@ void MainWindow::on_actionVersion_triggered()
 
 void MainWindow::on_actionCopyright_triggered()
 {
-    QMessageBox msgBox;
-    QString copyrightText = QString("\
-                                    <p>\
-                                    The source code is licensed under a BSD 2-Clause License:<p>\
-                                    \"Copyright (c) 2017-2019, The Regents of the University of California (Regents).\"\
-                                    All rights reserved.<p>\
-                                    <p>\
-                                    Redistribution and use in source and binary forms, with or without \
-                                    modification, are permitted provided that the following conditions are met:\
-                                    <p>\
-                                    1. Redistributions of source code must retain the above copyright notice, this\
-                                    list of conditions and the following disclaimer.\
-                                    \
-                                    \
-                                    2. Redistributions in binary form must reproduce the above copyright notice,\
-                                    this list of conditions and the following disclaimer in the documentation\
-                                    and/or other materials provided with the distribution.\
-                                    <p>\
-                                    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\
-                                    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\
-                                    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\
-                                    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR\
-                                    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\
-                                    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\
-                                    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\
-            ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\
-            (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\
-            SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\
-            <p>\
-            The views and conclusions contained in the software and documentation are those\
-            of the authors and should not be interpreted as representing official policies,\
-            either expressed or implied, of the FreeBSD Project.\
-            <p>\
-            REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, \
-            THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.\
-            THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS \
-            PROVIDED \"AS IS\". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,\
-            UPDATES, ENHANCEMENTS, OR MODIFICATIONS.\
-            <p>\
-            ------------------------------------------------------------------------------------\
-            <p>\
-            The compiled binary form of this application is licensed under a GPL Version 3 license.\
-            The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
-            included in the packaging of this application. \
-            <p>\
-            ------------------------------------------------------------------------------------\
-            <p>\
-            This software makes use of the QT packages (unmodified): core, gui, widgets and network\
-                                                                     <p>\
-                                                                     QT is copyright \"The Qt Company Ltd&quot; and licensed under the GNU Lesser General \
-                                                                     Public License (version 3) which references the GNU General Public License (version 3)\
-      <p>\
-      The licenses are as published by the Free Software Foundation and appearing in the LICENSE file\
-      included in the packaging of this application. \
-      <p>\
-      ");
+    DialogAbout *dlg = new DialogAbout();
+    QString licenseTitle("Copyright");
+    QString licenseSource = ":/resources/textCopyright.html";
+    dlg->setTitle(licenseTitle);
+    dlg->setTextSource(licenseSource);
 
-      QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    msgBox.setText(copyrightText);
-    QGridLayout *layout = (QGridLayout*)msgBox.layout();
-    layout->addItem(theSpacer, layout->rowCount(),0,1,layout->columnCount());
-    msgBox.exec();
+    //
+    // adjust size of application window to the available display
+    //
+    QRect rec = QGuiApplication::primaryScreen()->geometry();
+    int height = 0.50*rec.height();
+    int width  = 0.50*rec.width();
+    dlg->resize(width, height);
+
+    dlg->exec();
+    delete dlg;
 }
 
 void MainWindow::on_action_License_triggered()
 {
+    DialogAbout *dlg = new DialogAbout();
+    QString licenseTitle("License");
+    QString licenseSource = ":/resources/textLicense.html";
+    dlg->setTitle(licenseTitle);
+    dlg->setTextSource(licenseSource);
 
+    //
+    // adjust size of application window to the available display
+    //
+    QRect rec = QGuiApplication::primaryScreen()->geometry();
+    int height = 0.50*rec.height();
+    int width  = 0.50*rec.width();
+    dlg->resize(width, height);
+
+    dlg->exec();
+    delete dlg;
 }
 
 void MainWindow::on_action_About_triggered()
@@ -439,11 +428,14 @@ void MainWindow::harmonicRecord(double f)
 
     for (int i=0; i < nPoints; i++) {
         s+=m_dt;
+        //m_accInput[i] = 0.4 * sin(2 * f * M_PI * s);
         m_accInput[i] = 0.4 * sin(2 * f * M_PI * s);
+
     }
 
     this->setTime();
     this->setFreq();
+    this->updateSoilTF();
     this->calculate();
     this->updatePlots(true);
 }
@@ -513,10 +505,10 @@ void MainWindow::loadFile(const QString &fileName)
 
     if (events.size()>0)
     {
-        QJsonArray patterns = events[0].toObject()["pattern"].toArray();
+        // QJsonArray patterns = events[0].toObject()["pattern"].toArray();
         QJsonArray timeseries = events[0].toObject()["timeSeries"].toArray();
-        QString type = patterns[0].toObject()["type"].toString();
-        QString tsname = patterns[0].toObject()["timeSeries"].toString();
+        // QString type = patterns[0].toObject()["type"].toString();
+        // QString tsname = patterns[0].toObject()["timeSeries"].toString();
 
         QJsonObject units = events[0].toObject()["units"].toObject();
         double accUnit = 1.0;
@@ -550,33 +542,26 @@ void MainWindow::readGM(QJsonArray accTH, double dT, double accUnit)
 
 void MainWindow::updatePlots(bool updateInputMotionFlag)
 {
-    ui->AccOutputFig->clear();
-    int sz = int(0.7 * ui->AccOutputFig->labelFontSize());
-    ui->AccOutputFig->setLabelFontSize(sz);
+    for (int i = 0; i <= 3; i++) {
+        m_figureList[i]->clear();
+        if (i > 0)
+            m_figureList[i]->setLabelFontSize(m_labelFont);
+    }
 
-    ui->FourierOutputFig->clear();
-    ui->FourierOutputFig->setLabelFontSize(sz);
-
-    ui->TransferFunctionFig->clear();
-    ui->TransferFunctionFig->setLabelFontSize(sz);
-
-    ui->TransferFunctionFig_TabLayer->clear();
-    // ui->TransferFunctionFig_TabLayer->setLabelFontSize(int(0.8 * ui->TransferFunctionFig_TabLayer->labelFontSize()));
-
-    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue);
-    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black);
-    ui->TransferFunctionFig->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
-    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_soilTF, SimFigure::LineType::Solid, Qt::red);
+    ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Output (Surface) Motion Acceleration Time History");
+    ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Output (Surface) Motion Fourier Amplitude");
+    ui->TransferFunctionFig->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
+    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
 
     if (updateInputMotionFlag) {
         ui->FourierInputFig->clear();
-        ui->FourierInputFig->setLabelFontSize(sz);
+        ui->FourierInputFig->setLabelFontSize(m_labelFont);
 
         ui->AccInputFig->clear();
-        ui->AccInputFig->setLabelFontSize(sz);
+        ui->AccInputFig->setLabelFontSize(m_labelFont);
 
-        ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black);
-        ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue);
+        ui->FourierInputFig->plot(m_freq, m_absFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Iutput (Bedrock) Motion Fourier Amplitude");
+        ui->AccInputFig->plot(m_time, m_accInput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Iutput (Bedrock) Motion Acceleration Time History");
     }
 
     if (!m_lockAxesFlag) {
@@ -589,15 +574,15 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
             ui->AccInputFig->setXlimits(0, m_time.back());
         }
     } else {
-        ui->TransferFunctionFig_TabLayer->setXlimits(m_xLowLimits[0], m_xUpLimits[0]);
-        ui->TransferFunctionFig_TabLayer->setYlimits(m_yLowLimits[0], m_yUpLimits[0]);
-        qDebug() << m_yUpLimits[0];
-        ui->TransferFunctionFig->setXlimits(m_xLowLimits[1], m_xUpLimits[1]);
-        ui->TransferFunctionFig->setYlimits(m_yLowLimits[1], m_yUpLimits[1]);
-        ui->FourierOutputFig->setXlimits(m_xLowLimits[2], m_xUpLimits[2]);
-        ui->FourierOutputFig->setYlimits(m_yLowLimits[2], m_yUpLimits[2]);
-        ui->AccOutputFig->setXlimits(m_xLowLimits[3], m_xUpLimits[3]);
-        ui->AccOutputFig->setYlimits(m_yLowLimits[3], m_yUpLimits[3]);
+        for (int i = 0; i <= 3; i++) {
+            m_figureList[i]->setXlimits(m_xLowLimits[i], m_xUpLimits[i]);
+            m_figureList[i]->setYlimits(m_yLowLimits[i], m_yUpLimits[i]);
+        }
+    }
+    for (int i = 0; i <= 5; i++) {
+        m_figureList[i]->showLegend();
+        m_figureList[i]->setLegendFontSize(1.2 * m_labelFont);
+        m_figureList[i]->moveLegend(SimFigure::Location::NorthEast);
     }
 }
 
@@ -606,7 +591,7 @@ void MainWindow::on_addRowBtn_clicked()
     QList<QVariant> valueListLayer;
     valueListLayer << QString ("Layer %1").arg(ui->tableView->m_sqlModel->rowCount() + 1) << m_defaultThickness << m_defaultDensity << m_defaultVs << DefaultEType << m_defaultDamping;
     emit ui->tableView->insertAbove(valueListLayer);
-    ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount()));
+    ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount() - 1));
     this->updateLayerID();
     this->onTableViewUpdated();
     this->updatePlots(false);
@@ -617,7 +602,7 @@ void MainWindow::on_delRowBtn_clicked()
 {
     if (ui->tableView->m_sqlModel->rowCount() > 1) {
         emit ui->tableView->removeOneRow(1);
-        ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount()));
+        ui->totalLayerLineEdit->setText(QString::number(ui->tableView->m_sqlModel->rowCount() - 1));
         ui->totalHeight->setText(QString::number(ui->tableView->m_sqlModel->getTotalHeight()));
         this->updateLayerID();
         this->onTableViewUpdated();
@@ -628,7 +613,7 @@ void MainWindow::on_delRowBtn_clicked()
 
 void MainWindow::updateLayerID()
 {
-    for (int i = 1; i <= ui->tableView->m_sqlModel->rowCount();i++) {
+    for (int i = 1; i < ui->tableView->m_sqlModel->rowCount();i++) {
         ui->tableView->m_sqlModel->editData(i-1, LAYERNAME, QString ("Layer %1").arg(i));
     }
     ui->totalHeight->setText(QString::number(ui->tableView->totalHeight()));
@@ -648,7 +633,15 @@ void MainWindow::onTableViewUpdated()
 void MainWindow::setActiveLayer(const QModelIndex &index)
 {
     m_activeLayer = index.row() + 1;
-    ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
+    if (m_activeLayer == ui->tableView->model()->rowCount()) {
+        ui->activeLayerlineEdit->setText("Bedrock");
+        ui->thicknessSlider->setEnabled(false);
+        ui->thicknessSpinBox->setEnabled(false);
+    } else {
+        ui->activeLayerlineEdit->setText(QString::number(m_activeLayer));
+        ui->thicknessSlider->setEnabled(true);
+        ui->thicknessSpinBox->setEnabled(true);
+    }
     ui->tableView->setFocus();
     ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
     this->plotLayers();
@@ -684,7 +677,7 @@ void MainWindow::on_densitySpinBox_valueChanged(double arg1)
 
 void MainWindow::on_thicknessSpinBox_valueChanged(double arg1)
 {
-    if (ui->tableView->m_sqlModel->rowCount() >= m_activeLayer) {
+    if (ui->tableView->m_sqlModel->rowCount() > m_activeLayer) {
         ui->tableView->m_sqlModel->editData(m_activeLayer - 1, THICKNESS, arg1);
         ui->tableView->update();
         this->onTableViewUpdated();
@@ -707,11 +700,13 @@ void MainWindow::updateSpinBox()
     ui->vsSpinBox->setValue(ui->tableView->m_sqlModel->getVS(m_activeLayer-1));
     ui->densitySpinBox->setValue(ui->tableView->m_sqlModel->getDensity(m_activeLayer-1));
     ui->dampingSpinBox->setValue(ui->tableView->m_sqlModel->getESize(m_activeLayer-1));
-    ui->thicknessSpinBox->setValue(ui->tableView->m_sqlModel->getThickness(m_activeLayer-1));
+    if (ui->tableView->m_sqlModel->rowCount() > m_activeLayer) {
+        ui->thicknessSpinBox->setValue(ui->tableView->m_sqlModel->getThickness(m_activeLayer-1));
+    }
 }
 
 // ------------------------------------------------------------------------
-// calculate transfer function
+// calculate transfer function, contributed by Pedro Arduino at University of Washington
 void MainWindow::updateSoilTF()
 {
     double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
@@ -719,24 +714,23 @@ void MainWindow::updateSoilTF()
     double dfreq = m_freq[1] - m_freq[0];
     QVector<double> freq(nPt), omega(nPt);
     QVector<std::complex<double> > mAA(nPt), mBB(nPt);
-    QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
+    // QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
     QVector<std::complex<double> > mAAaux(nPt), mBBaux(nPt);
     QVector<double> Nfreq(nPt);
 
     m_soilTF.resize(nPt);
 
-    std::complex<double> kstar;
-    std::complex<double> Vsstar;
+    std::complex<double> kstar;  // complex wave number
+    std::complex<double> Vsstar;  // complex shear wave velocity
     std::complex<double> kHstar;
-    std::complex<double> alphastar;
+    std::complex<double> alphastar;  // complex impedance ratio
     std::complex<double> mExpA;
     std::complex<double> mExpB;
     std::complex<double> One;
-    std::complex<double> AAA;
 
     One = std::complex<double>(1,0);
     freq[0]=0.0;
-    for (int i=1; i<m_freq.size();i++){
+    for (int i=1; i < nPt; i++){
         freq[i]  = freq[i-1]+dfreq;
         omega[i] = 2.0*M_PI*freq[i];
         mAAaux[i]=std::complex<double>(1,0);
@@ -745,21 +739,16 @@ void MainWindow::updateSoilTF()
     m_freq = freq;
     mAA = mAAaux; mBB = mBBaux;
 
-    // set dummy value for rock layer
-    int numLayers = ui->tableView->m_sqlModel->rowCount() + 1;
+    int numLayers = ui->tableView->m_sqlModel->rowCount();
     QVector<QString> vsVec = ui->tableView->m_sqlModel->getvsVec();
-    vsVec.append(QString::number(DefaultVs));
     QVector<QString> dampingVec = ui->tableView->m_sqlModel->getesizeVec();  // damping
-    dampingVec.append("2");
     QVector<QString> thicknessVec = ui->tableView->m_sqlModel->getthicknessVec();
-    thicknessVec.append(QString::number(DefaultThickness));
     QVector<QString> rhoVec = ui->tableView->m_sqlModel->getdensityVec();
-    rhoVec.append(QString::number(DefaultDensity));
 
-    if (numLayers == 0)
+    if (numLayers == 0 || numLayers == 1)
         return;
 
-    for(int i = 0; i<numLayers-1; i++){
+    for(int i = 0; i < numLayers-1; i++){
         Psi = dampingVec[i].toDouble() /100.0;
         Psi1 = dampingVec[i+1].toDouble() /100.0;
         HH  = thicknessVec[i].toDouble();
@@ -772,9 +761,9 @@ void MainWindow::updateSoilTF()
         aux = Rho*Vs/(Rho1*Vs1)/(1+Psi1*Psi1);
         alphastar = std::complex<double>(aux*(1+Psi1*Psi1), -aux*(Psi1-Psi));
 
-        for (int ii = 0; ii < freq.size(); ii++ ){
+        for (int ii = 0; ii < nPt; ii++ ){
             double km = 2.0* M_PI *freq[ii]/Vs/(1.0+Psi*Psi);
-            double kmHH = km*HH;
+            // double kmHH = km*HH;
             kstar = std::complex<double>(km, -km*Psi);
             Vsstar = std::complex<double>(Vs, Vs*Psi);
             kHstar = std::complex<double>(km*HH*Psi, km*HH);
@@ -783,17 +772,15 @@ void MainWindow::updateSoilTF()
             mAA[ii] = 0.5*mAAaux[ii]*(One+alphastar)*mExpA + 0.5*mBBaux[ii]*(One-alphastar)*mExpB;
             mBB[ii] = 0.5*mAAaux[ii]*(One-alphastar)*mExpA + 0.5*mBBaux[ii]*(One+alphastar)*mExpB;
         }
-        if (i == 0){
-            mAA1 = mAA;
-            mBB1 = mBB;
-        }
     }
 
-    m_soilTF[0] = 1.0;
+    m_soilTF[0] = One;
 
-    for (int i=1; i<m_freq.size();i++){
-        AAA = One/(mAA[i]+mBB[i]);
-        m_soilTF[i]= 2*abs(AAA);
+    for (int i=1; i < nPt;i++){
+        // AAA = One/(mAA[i]+mBB[i]);
+        // m_soilTF[i]= 2*abs(AAA);
+        // this is the transfer function relating surface and bedrock
+        m_soilTF[i] = One/(mAA[i]);
     }
     // calculateNatFreq(nPt, maxfreq);
 }
@@ -822,7 +809,7 @@ void MainWindow::ifft(QVector<std::complex<double>> fas, QVector<double>& ts)
     status = DftiCreateDescriptor(&descriptor, DFTI_DOUBLE, DFTI_REAL, 1, (fas.size() - 1) * 2); //Specify size and precision
     status = DftiSetValue(descriptor, DFTI_PLACEMENT, DFTI_NOT_INPLACE);
     status = DftiSetValue(descriptor, DFTI_CONJUGATE_EVEN_STORAGE, DFTI_COMPLEX_COMPLEX);
-    status = DftiSetValue(descriptor, DFTI_BACKWARD_SCALE, 1.0f / fas.size()); //Scale down the output
+    status = DftiSetValue(descriptor, DFTI_BACKWARD_SCALE, 0.5f / fas.size()); //Scale down the output
     status = DftiCommitDescriptor(descriptor); //Finalize the descriptor
     status = DftiComputeBackward(descriptor, fas.data(), ts.data()); //Compute the Forward FFT
     status = DftiFreeDescriptor(&descriptor); //Free the descriptor
@@ -831,30 +818,28 @@ void MainWindow::ifft(QVector<std::complex<double>> fas, QVector<double>& ts)
 // Calculate soil transfer function and surface soil response
 void MainWindow::calculate()
 {
-    QVector<double> absSoilTF(m_freq.size());
-
     // Compute the Fourier amplitude spectrum
     QVector<std::complex<double>> fas(m_freq.size());
     fft(m_accInput, fas);
-    QVector<double> absfas(fas.size());
-    for ( int i = 0; i < fas.size(); i++ ) {
-        absfas[i] = abs(fas[i]);
+    m_absFft.resize(fas.size());
+    m_absFft[0] = abs(fas[0]) / m_accInput.size();
+    for ( int i = 1; i < fas.size(); i++ ) {
+        m_absFft[i] = 2 * abs(fas[i]) / m_accInput.size();
     }
-    m_absFft = absfas;
 
-    for ( int i = 0; i < m_freq.size(); i++ ) {
-        absSoilTF[i] = abs(m_soilTF[i]);
+    m_absSoilTF.resize(m_freq.size());
+    for (int i = 0; i < m_freq.size(); i++ ) {
+        m_absSoilTF[i] = abs(m_soilTF[i]);
     }
-    m_absSoilTF = absSoilTF;
 
     // Compute surface soil response
     QVector<std::complex<double>> ifas(m_freq.size());
-    QVector<double> absfas2(ifas.size());
+    m_absIFft.resize(m_freq.size());
+    m_absIFft[0] = abs(ifas[0]) / m_accInput.size();
     for (int i = 0; i < m_freq.size(); i++) {
         ifas[i] = fas[i] * m_soilTF[i];
-        absfas2[i] = abs(ifas[i]);
+        m_absIFft[i] = abs(ifas[i]) * 2 / m_accInput.size();
     }
-    m_absIFft = absfas2;
     QVector<double> accT(m_accInput.size());
     ifft(ifas, accT);
     m_accOutput = accT;
@@ -871,16 +856,25 @@ void MainWindow::plotLayers()
     //
     // Plot Ground Layers
     //
-    plot->detachItems();
-    double currentBase = 0;
-    for (int iLayer = ui->tableView->m_sqlModel->rowCount(); iLayer >= 1; iLayer--) {
+    m_layerPlot->detachItems();
+    double currentTop = 0;
+    for (int iLayer = 1; iLayer <= ui->tableView->m_sqlModel->rowCount(); iLayer++) {
         QPolygonF groundCorners;
-        groundCorners << QPointF(0, currentBase)
-                      << QPointF(1, currentBase)
-                      << QPointF(1, currentBase + ui->tableView->m_sqlModel->getThickness(iLayer-1))
-                      << QPointF(0, currentBase + ui->tableView->m_sqlModel->getThickness(iLayer-1))
-                      << QPointF(0, currentBase);
-        currentBase += ui->tableView->m_sqlModel->getThickness(iLayer-1);
+        if (iLayer == ui->tableView->m_sqlModel->rowCount()) {
+            groundCorners << QPointF(0.25, currentTop)
+                          << QPointF(0.75, currentTop)
+                          << QPointF(0.75, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
+                          << QPointF(0.25, currentTop + ui->tableView->m_sqlModel->getTotalHeight() * 0.1)
+                          << QPointF(0.25, currentTop);
+            currentTop += ui->tableView->m_sqlModel->getTotalHeight() * 0.1;
+        } else {
+            groundCorners << QPointF(0.25, currentTop)
+                          << QPointF(0.75, currentTop)
+                          << QPointF(0.75, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
+                          << QPointF(0.25, currentTop + ui->tableView->m_sqlModel->getThickness(iLayer-1))
+                          << QPointF(0.25, currentTop);
+            currentTop += ui->tableView->m_sqlModel->getThickness(iLayer-1);
+        }
         QwtPlotShapeItem *layerII = new QwtPlotShapeItem();
         if (iLayer == m_activeLayer) {
             layerII->setPen(QPen(Qt::red, 2));
@@ -892,16 +886,28 @@ void MainWindow::plotLayers()
         }
 
         layerII->setPolygon(groundCorners);
-        layerII->attach(plot);
+        layerII->attach(m_layerPlot);
 
         PLOTOBJECT var;
         var.itemPtr = layerII;
         var.index   = iLayer;
         plotItemList.append(var);
     }
-    plot->setAxisScale(QwtPlot::yLeft, 0, currentBase);
+    m_layerPlot->setAxisScale(QwtPlot::yLeft, currentTop, 0);
 
-    plot->replot();
+    QwtText text;
+    text.setText("Rock");
+    QFont textFont;
+    textFont.setPointSize(m_labelFont);
+    textFont.setBold(true);
+    text.setFont(textFont);
+    QwtPlotMarker *rockLabel = new QwtPlotMarker;
+    rockLabel->setLabel(text);
+    rockLabel->setXValue(0.5);
+    rockLabel->setYValue(1.05 * ui->tableView->m_sqlModel->getTotalHeight());
+    rockLabel->attach(m_layerPlot);
+
+    m_layerPlot->replot();
 }
 
 
@@ -922,15 +928,15 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
     emptyObj.itemPtr = nullptr;
     emptyObj.index   = -1;
 
-    if ( plot == nullptr )
+    if ( m_layerPlot == nullptr )
         return emptyObj;
 
     // translate pos into the plot coordinates
     double coords[ QwtPlot::axisCnt ];
-    coords[ QwtPlot::xBottom ] = plot->canvasMap( QwtPlot::xBottom ).invTransform( pos.x() );
-    coords[ QwtPlot::xTop ]    = plot->canvasMap( QwtPlot::xTop ).invTransform( pos.x() );
-    coords[ QwtPlot::yLeft ]   = plot->canvasMap( QwtPlot::yLeft ).invTransform( pos.y() );
-    coords[ QwtPlot::yRight ]  = plot->canvasMap( QwtPlot::yRight ).invTransform( pos.y() );
+    coords[ QwtPlot::xBottom ] = m_layerPlot->canvasMap( QwtPlot::xBottom ).invTransform( pos.x() );
+    coords[ QwtPlot::xTop ]    = m_layerPlot->canvasMap( QwtPlot::xTop ).invTransform( pos.x() );
+    coords[ QwtPlot::yLeft ]   = m_layerPlot->canvasMap( QwtPlot::yLeft ).invTransform( pos.y() );
+    coords[ QwtPlot::yRight ]  = m_layerPlot->canvasMap( QwtPlot::yRight ).invTransform( pos.y() );
 
     for ( int i = plotItemList.size() - 1; i >= 0; i-- )
     {
@@ -953,13 +959,13 @@ PLOTOBJECT MainWindow::itemAt( const QPoint& pos ) const
                     double x, y;
 
                     pnt = curveItem->sample(line);
-                    x = plot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
-                    y = plot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
+                    x = m_layerPlot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
+                    y = m_layerPlot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
                     QPointF x0(x,y);
 
                     pnt = curveItem->sample(line+1);
-                    x = plot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
-                    y = plot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
+                    x = m_layerPlot->canvasMap( QwtPlot::xBottom ).transform( pnt.x() );
+                    y = m_layerPlot->canvasMap( QwtPlot::yLeft ).transform( pnt.y() );
                     QPointF x1(x,y);
 
                     QPointF r  = pos - x0;
@@ -1016,22 +1022,12 @@ void MainWindow::on_resetFigureBtn_clicked()
 void MainWindow::on_lockAxischeckBox_stateChanged(int arg1)
 {
     m_lockAxesFlag = arg1;
-    // record current axis limits
-    m_xUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxX();
-    m_xLowLimits[0] = ui->TransferFunctionFig_TabLayer->minX();
-    m_yUpLimits[0] = ui->TransferFunctionFig_TabLayer->maxY();
-    m_yLowLimits[0] = ui->TransferFunctionFig_TabLayer->minY();
-    m_xUpLimits[1] = ui->TransferFunctionFig->maxX();
-    m_xLowLimits[1] = ui->TransferFunctionFig->minX();
-    m_yUpLimits[1] = ui->TransferFunctionFig->maxY();
-    m_yLowLimits[1] = ui->TransferFunctionFig->minY();
-    m_xUpLimits[2] = ui->FourierOutputFig->maxX();
-    m_xLowLimits[2] = ui->FourierOutputFig->minX();
-    m_yUpLimits[2] = ui->FourierOutputFig->maxY();
-    m_yLowLimits[2] = ui->FourierOutputFig->minY();
-    m_xUpLimits[3] = ui->AccOutputFig->maxX();
-    m_xLowLimits[3] = ui->AccOutputFig->minX();
-    m_yUpLimits[3] = ui->AccOutputFig->maxY();
-    m_yLowLimits[3] = ui->AccOutputFig->minY();
+
+    for (int i = 0; i <= 3; i++) {
+        m_xUpLimits[i] = m_figureList[i]->maxX();
+        m_xLowLimits[i] = m_figureList[i]->minX();
+        m_yUpLimits[i] = m_figureList[i]->maxY();
+        m_yLowLimits[i] = m_figureList[i]->minY();
+    }
 }
 

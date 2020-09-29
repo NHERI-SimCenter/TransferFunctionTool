@@ -117,6 +117,7 @@ private slots:
     void on_actionCopyright_triggered();
     void on_action_License_triggered();
     void on_action_About_triggered();
+    void on_actionDocumentation_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -139,9 +140,10 @@ private:
     int m_activeLayer = 1;
     double m_defaultThickness = 5.0;
     double m_defaultVs = 200.0;
-    double m_defaultDamping = 10.0;
+    double m_defaultDamping = 3.0;
     double m_defaultDensity = 2.0;
     double m_dt;
+    int m_labelFont;
 
     QVector<double> m_accInput;
     QVector<double> m_accOutput;
@@ -149,7 +151,7 @@ private:
     QVector<double> m_absIFft;
     QVector<double> m_time;
     QVector<double> m_freq;
-    QVector<double> m_soilTF;
+    QVector<std::complex<double>> m_soilTF;
     QVector<double> m_absSoilTF;
     QVector<double> m_xUpLimits;
     QVector<double> m_xLowLimits;
@@ -157,12 +159,8 @@ private:
     QVector<double> m_yLowLimits;
 
 
-    QwtPlot *plot;
-    SimFigure *AccOFig;
-    SimFigure *FOFig;
-    SimFigure *HFig;
-    SimFigure *AccIFig;
-    SimFigure *FIFig;
+    QwtPlot *m_layerPlot;
+    QList<SimFigure*> m_figureList;
 
     QMenu *fileMenu;
     QMenu *editMenu;

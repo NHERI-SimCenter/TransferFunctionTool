@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>Transfer Function Tool</Name>
+    <Version>0.9</Version>
+    <Title>Transfer Function Tool Installer</Title>
+    <Publisher>NHERI SimCenter</Publisher>
+    <ProductUrl>https://simcenter.designsafe-ci.org/learning-tools/itransfer-function-tool</ProductUrl>
+    <InstallerApplicationIcon>NHERI-TFT-Icon</InstallerApplicationIcon>
+    <InstallerWindowIcon>NHERI-TFT-Icon</InstallerWindowIcon>
+    <Logo>NHERI-TFT-Icon.png</Logo>
+    <Background>SimCenterInstallerLogo.png</Background>
+    <StartMenuDir>SimCenter Apps</StartMenuDir>
+    <TargetDir>@HomeDir@/Applications/SimCenter Apps/SimCenterTFT</TargetDir>
+</Installer>

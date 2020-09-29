@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
+#include <GoogleAnalytics.h>
 
 static QString logFilePath;
 
@@ -46,11 +47,15 @@ QString openStyleFiles()
 
 int main(int argc, char *argv[])
 {
+    GoogleAnalytics::SetTrackingId("UA-178896295-1");
+    GoogleAnalytics::StartSession();
+    GoogleAnalytics::ReportStart();
+
     QApplication a(argc, argv);
 
     QCoreApplication::setApplicationName("NHERI-TFT");
     QCoreApplication::setOrganizationName("SimCenter");
-    QCoreApplication::setApplicationVersion("0.9");
+    QCoreApplication::setApplicationVersion("1.0.0");
     // window scaling
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
@@ -61,6 +66,8 @@ int main(int argc, char *argv[])
 
     // set the global stylesheet
     a.setStyleSheet(openStyleFiles());
+
+    GoogleAnalytics::EndSession();
 
     return a.exec();
 }
