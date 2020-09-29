@@ -261,7 +261,12 @@ void MainWindow::initialTableView()
 
 void MainWindow::on_actionProvide_feedback_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://www.designsafe-ci.org/help/new-ticket/", QUrl::TolerantMode));
+    QDesktopServices::openUrl(QUrl("https://simcenter-messageboard.designsafe-ci.org/smf/index.php?board=11.0", QUrl::TolerantMode));
+}
+
+void MainWindow::on_actionDocumentation_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://nheri-simcenter.github.io/TFT-Documentation/", QUrl::TolerantMode));
 }
 
 void MainWindow::on_actionVersion_triggered()

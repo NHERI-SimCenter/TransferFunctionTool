@@ -850,6 +850,7 @@
     <addaction name="actionCopyright"/>
     <addaction name="action_License"/>
     <addaction name="actionProvide_feedback"/>
+    <addaction name="actionDocumentation"/>
    </widget>
    <addaction name="menu_Help"/>
   </widget>
@@ -876,6 +877,11 @@
   <action name="actionCopyright">
    <property name="text">
     <string>Copyright</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
    </property>
   </action>
  </widget>
