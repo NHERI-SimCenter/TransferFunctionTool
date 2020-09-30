@@ -16,5 +16,6 @@
         <file>resources/styleSheets/Linux.qss</file>
         <file>resources/textLicense.html</file>
         <file>resources/textCopyright.html</file>
+        <file>resources/sim_logo_footer.png</file>
     </qresource>
 </RCC>

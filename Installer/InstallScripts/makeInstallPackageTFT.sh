@@ -6,9 +6,11 @@
 
 APP=TransferFunctionTool
 QWT_FRAMEWORK=qwt.framework
-QWT_FRAMEWORK_PATH=/usr/local/qwt-6.1.5/lib/
+#QWT_FRAMEWORK_PATH=/usr/local/qwt-6.1.5/lib/
+QWT_FRAMEWORK_PATH=/usr/local/qwt-6.1.4/lib/
 
-QT_DEPLOY=/Users/long/Qt/5.14.2/clang_64/bin/macdeployqt
+#QT_DEPLOY=/Users/long/Qt/5.14.2/clang_64/bin/macdeployqt
+QT_DEPLOY=$HOME/Qt/5.15.1/clang_64/bin/macdeployqt
 #
 # ---- do not change anything below this line -----------------------------------
 #
@@ -53,6 +55,7 @@ then
 		echo "verifying that $QWT_FRAMEWORK exists: OK"
 	    else
 		echo "verifying that $QWT_FRAMEWORK exists: FAILED"
+		echo "looking for $QWT_FRAMEWORK_PATH/$QWT_FRAMEWORK"
 		exit 1
 	    fi
 
