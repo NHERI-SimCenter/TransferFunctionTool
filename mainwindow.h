@@ -117,6 +117,7 @@ private slots:
     void on_actionCopyright_triggered();
     void on_action_License_triggered();
     void on_action_About_triggered();
+    void on_actionDocumentation_triggered();
 
 private:
     Ui::MainWindow *ui;
