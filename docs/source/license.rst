@@ -13,7 +13,7 @@ Copyright
 ------------
 .. code-block:: none 
 
-	Copyright (c) 2018, The Regents of the University of California
+	Copyright (c) 2020, The Regents of the University of California
 
 BSD 3-Caluse license
 -------------------------
