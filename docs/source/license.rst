@@ -15,7 +15,7 @@ Copyright
 
 	Copyright (c) 2020, The Regents of the University of California
 
-BSD 3-Caluse license
+BSD 3-Clause license
 -------------------------
 .. code-block:: none 
 
