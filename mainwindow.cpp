@@ -572,8 +572,8 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
 
     ui->AccOutputFig->plot(m_time, m_accOutput, SimFigure::LineType::Solid, Qt::blue, SimFigure::Marker::None, "Output (Surface) Motion Acceleration Time History");
     ui->FourierOutputFig->plot(m_freq, m_absIFft, SimFigure::LineType::Solid, Qt::black, SimFigure::Marker::None, "Output (Surface) Motion Fourier Amplitude");
-    ui->TransferFunctionFig->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
-    ui->TransferFunctionFig_TabLayer->plot(m_freq, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
+    ui->TransferFunctionFig->plot(m_freq_TF, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
+    ui->TransferFunctionFig_TabLayer->plot(m_freq_TF, m_absSoilTF, SimFigure::LineType::Solid, Qt::red, SimFigure::Marker::None, "Transfer Function");
 
     if (updateInputMotionFlag) {
         ui->FourierInputFig->clear();
@@ -588,11 +588,11 @@ void MainWindow::updatePlots(bool updateInputMotionFlag)
 
     if (!m_lockAxesFlag) {
         ui->AccOutputFig->setXlimits(0, m_time.back());
-        ui->FourierOutputFig->setXlimits(0, 25);
-        ui->TransferFunctionFig->setXlimits(0, 25);
-        ui->TransferFunctionFig_TabLayer->setXlimits(0, 25);
+        ui->FourierOutputFig->setXlimits(0, m_defaultXLim);
+        ui->TransferFunctionFig->setXlimits(0, m_defaultXLim);
+        ui->TransferFunctionFig_TabLayer->setXlimits(0, m_defaultXLim);
+        ui->FourierInputFig->setXlimits(0, m_defaultXLim);
         if (updateInputMotionFlag) {
-            ui->FourierInputFig->setXlimits(0, 25);
             ui->AccInputFig->setXlimits(0, m_time.back());
         }
     } else {
@@ -731,9 +731,10 @@ void MainWindow::updateSpinBox()
 // calculate transfer function, contributed by Pedro Arduino at University of Washington
 void MainWindow::updateSoilTF()
 {
-    double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux;
-    int nPt = m_freq.size();
+    double Psi, Psi1, HH, Vs, Vs1, Rho, Rho1, aux, totalTravelTime;
+    double maxTFfreq = 100.0;
     double dfreq = m_freq[1] - m_freq[0];
+    int nPt = int(maxTFfreq / dfreq);
     QVector<double> freq(nPt), omega(nPt);
     QVector<std::complex<double> > mAA(nPt), mBB(nPt);
     // QVector<std::complex<double> > mAA1(nPt), mBB1(nPt);
@@ -754,11 +755,11 @@ void MainWindow::updateSoilTF()
     freq[0]=0.0;
     for (int i=1; i < nPt; i++){
         freq[i]  = freq[i-1]+dfreq;
-        omega[i] = 2.0*M_PI*freq[i];
+        // omega[i] = 2.0*M_PI*freq[i];
         mAAaux[i]=std::complex<double>(1,0);
         mBBaux[i]=std::complex<double>(1,0);
     }
-    m_freq = freq;
+    m_freq_TF = freq;
     mAA = mAAaux; mBB = mBBaux;
 
     int numLayers = ui->tableView->m_sqlModel->rowCount();
@@ -769,7 +770,7 @@ void MainWindow::updateSoilTF()
 
     if (numLayers == 0 || numLayers == 1)
         return;
-
+    totalTravelTime = 0;
     for(int i = 0; i < numLayers-1; i++){
         Psi = dampingVec[i].toDouble() /100.0;
         Psi1 = dampingVec[i+1].toDouble() /100.0;
@@ -779,6 +780,7 @@ void MainWindow::updateSoilTF()
         Rho = rhoVec[i].toDouble();
         Rho1 = rhoVec[i+1].toDouble();
         mAAaux = mAA; mBBaux = mBB;
+        totalTravelTime += HH / Vs;
 
         aux = Rho*Vs/(Rho1*Vs1)/(1+Psi1*Psi1);
         alphastar = std::complex<double>(aux*(1+Psi1*Psi1), -aux*(Psi1-Psi));
@@ -797,13 +799,14 @@ void MainWindow::updateSoilTF()
     }
 
     m_soilTF[0] = One;
-
     for (int i=1; i < nPt;i++){
         // AAA = One/(mAA[i]+mBB[i]);
         // m_soilTF[i]= 2*abs(AAA);
         // this is the transfer function relating surface and bedrock
         m_soilTF[i] = One/(mAA[i]);
     }
+    m_nFrequency = 1 / 4.0 / totalTravelTime;
+    m_defaultXLim = fmin(maxTFfreq, 5 * m_nFrequency);
     // calculateNatFreq(nPt, maxfreq);
 }
 
@@ -849,8 +852,8 @@ void MainWindow::calculate()
         m_absFft[i] = 2 * abs(fas[i]) / m_accInput.size();
     }
 
-    m_absSoilTF.resize(m_freq.size());
-    for (int i = 0; i < m_freq.size(); i++ ) {
+    m_absSoilTF.resize(m_freq_TF.size());
+    for (int i = 0; i < m_freq_TF.size(); i++ ) {
         m_absSoilTF[i] = abs(m_soilTF[i]);
     }
 

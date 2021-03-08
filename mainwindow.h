@@ -144,13 +144,16 @@ private:
     double m_defaultDensity = 2.0;
     double m_dt;
     int m_labelFont;
+    double m_nFrequency;  // natural frequency of the profile
+    double m_defaultXLim;   // x limits for frequency
 
     QVector<double> m_accInput;
     QVector<double> m_accOutput;
     QVector<double> m_absFft;
     QVector<double> m_absIFft;
     QVector<double> m_time;
-    QVector<double> m_freq;
+    QVector<double> m_freq;     // frequency vector for Fourier amplitude, vary based on input motion dt
+    QVector<double> m_freq_TF;  // frequency vector for Transfer function
     QVector<std::complex<double>> m_soilTF;
     QVector<double> m_absSoilTF;
     QVector<double> m_xUpLimits;
