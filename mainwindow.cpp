@@ -47,8 +47,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     QRect rec = QGuiApplication::primaryScreen()->geometry();
-    int height = this->height()<int(0.80*rec.height())?int(0.80*rec.height()):this->height();
-    int width  = this->width()<int(0.60*rec.width())?int(0.60*rec.width()):this->width();
+    //    int height = this->height()<int(0.80*rec.height())?int(0.80*rec.height()):this->height();
+    // int width  = this->width()<int(0.60*rec.width())?int(0.60*rec.width()):this->width();
+    int height = this->height()<int(rec.height())?int(rec.height()):this->height();
+    int width  = this->width()<int(rec.width())?int(rec.width()):this->width();    
     this->resize(width, height);
 
     // ------------------------------------------------------------------------
