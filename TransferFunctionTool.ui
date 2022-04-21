@@ -123,7 +123,7 @@
            <number>6</number>
           </property>
           <property name="verticalSpacing">
-           <number>10</number>
+           <number>3</number>
           </property>
           <item row="8" column="0" colspan="2">
            <widget class="QFrame" name="frame_2">
@@ -186,6 +186,9 @@
              </property>
              <property name="bottomMargin">
               <number>6</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>3</number>
              </property>
              <item row="0" column="0">
               <widget class="QDoubleSpinBox" name="vsSpinBox">
@@ -269,7 +272,7 @@
             <property name="title">
              <string>Density:</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_6" columnstretch="3,0">
+            <layout class="QGridLayout" name="gridLayout_6" columnstretch="3,1">
              <property name="leftMargin">
               <number>6</number>
              </property>
@@ -281,6 +284,9 @@
              </property>
              <property name="bottomMargin">
               <number>6</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>3</number>
              </property>
              <item row="0" column="0">
               <widget class="QDoubleSpinBox" name="densitySpinBox"/>
@@ -339,6 +345,9 @@
              </property>
              <property name="bottomMargin">
               <number>6</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>3</number>
              </property>
              <item row="1" column="0">
               <widget class="QSlider" name="thicknessSlider">
@@ -408,22 +417,10 @@
              </size>
             </property>
             <property name="title">
-             <string>Frequency [Hz]:</string>
+             <string>Frequency:</string>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <property name="leftMargin">
-              <number>6</number>
-             </property>
-             <property name="topMargin">
-              <number>6</number>
-             </property>
-             <property name="rightMargin">
-              <number>6</number>
-             </property>
-             <property name="bottomMargin">
-              <number>6</number>
-             </property>
-             <item>
+            <layout class="QGridLayout" name="gridLayout" columnstretch="3,1">
+             <item row="0" column="0">
               <widget class="QDoubleSpinBox" name="frequencySpinBox">
                <property name="minimumSize">
                 <size>
@@ -433,7 +430,14 @@
                </property>
               </widget>
              </item>
-             <item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Hz</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
               <widget class="QSlider" name="frequencySlider">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -484,6 +488,9 @@
              </property>
              <property name="bottomMargin">
               <number>6</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>3</number>
              </property>
              <item row="0" column="0">
               <widget class="QDoubleSpinBox" name="dampingSpinBox">
@@ -555,7 +562,7 @@
             <property name="title">
              <string>Motion Selection</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_4">
+            <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,3,1">
              <property name="leftMargin">
               <number>6</number>
              </property>
@@ -566,6 +573,9 @@
               <number>6</number>
              </property>
              <property name="bottomMargin">
+              <number>6</number>
+             </property>
+             <property name="verticalSpacing">
               <number>6</number>
              </property>
              <item row="5" column="1">
@@ -911,76 +921,115 @@
           <attribute name="title">
            <string>Motion Plots</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_10">
+          <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0">
            <property name="spacing">
-            <number>3</number>
+            <number>0</number>
            </property>
            <property name="leftMargin">
-            <number>6</number>
+            <number>0</number>
            </property>
            <property name="topMargin">
-            <number>6</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>6</number>
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>6</number>
+            <number>0</number>
            </property>
            <item>
-            <widget class="SimFigure" name="AccOutputFig">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+            <widget class="QScrollArea" name="scrollArea">
+             <property name="widgetResizable">
+              <bool>true</bool>
              </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SimFigure" name="FourierOutputFig">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SimFigure" name="TransferFunctionFig">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SimFigure" name="FourierInputFig">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="SimFigure" name="AccInputFig">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>851</width>
+                <height>777</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,1">
+               <property name="spacing">
+                <number>1</number>
+               </property>
+               <property name="leftMargin">
+                <number>6</number>
+               </property>
+               <property name="topMargin">
+                <number>6</number>
+               </property>
+               <property name="rightMargin">
+                <number>6</number>
+               </property>
+               <property name="bottomMargin">
+                <number>6</number>
+               </property>
+               <item>
+                <widget class="SimFigure" name="AccOutputFig">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="SimFigure" name="FourierOutputFig">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="SimFigure" name="TransferFunctionFig">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="SimFigure" name="FourierInputFig">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="SimFigure" name="AccInputFig">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </widget>
            </item>
           </layout>
@@ -998,7 +1047,7 @@
      <x>0</x>
      <y>0</y>
      <width>1360</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Help">
