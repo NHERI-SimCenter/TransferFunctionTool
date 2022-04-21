@@ -107,14 +107,14 @@ MainWindow::MainWindow(QWidget *parent)
     ui->AccOutputFig->setXLabel("Time [s]");
     ui->AccOutputFig->setYLabel("Accel. [g]");
     m_labelFont = int(0.7 * ui->AccOutputFig->labelFontSize());
-    ui->AccOutputFig->setMaximumHeight(0.15 * rec.height());
+    //ui->AccOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccOutputFig->grid(true,false);
     ui->AccOutputFig->setTickFontSize(m_labelFont);
 
     ui->FourierOutputFig->showAxisControls(false);
     ui->FourierOutputFig->setXLabel("Freq. [Hz]");
     ui->FourierOutputFig->setYLabel("FA [g-s]");
-    ui->FourierOutputFig->setMaximumHeight(0.15 * rec.height());
+    //ui->FourierOutputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierOutputFig->grid(true,false);
     ui->FourierOutputFig->setTickFontSize(m_labelFont);
 
@@ -122,21 +122,21 @@ MainWindow::MainWindow(QWidget *parent)
     ui->TransferFunctionFig->setXLabel("Freq. [Hz]");
     ui->TransferFunctionFig->setYLabel("[H]");
     ui->TransferFunctionFig->setXLim(0, 25);
-    ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
+    //ui->TransferFunctionFig->setMaximumHeight(0.15 * rec.height());
     ui->TransferFunctionFig->grid(true,false);
     ui->TransferFunctionFig->setTickFontSize(m_labelFont);
 
     ui->FourierInputFig->showAxisControls(false);
     ui->FourierInputFig->setXLabel("Freq. [Hz]");
     ui->FourierInputFig->setYLabel("FA [g-s]");
-    ui->FourierInputFig->setMaximumHeight(0.15 * rec.height());
+    //ui->FourierInputFig->setMaximumHeight(0.15 * rec.height());
     ui->FourierInputFig->grid(true,false);
     ui->FourierInputFig->setTickFontSize(m_labelFont);
 
     ui->AccInputFig->showAxisControls(false);
     ui->AccInputFig->setXLabel("Time [s]");
     ui->AccInputFig->setYLabel("Accel. [g]");
-    ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
+    //ui->AccInputFig->setMaximumHeight(0.15 * rec.height());
     ui->AccInputFig->grid(true,false);
     ui->AccInputFig->setTickFontSize(m_labelFont);
 
