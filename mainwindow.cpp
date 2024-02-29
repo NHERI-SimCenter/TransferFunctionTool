@@ -2,6 +2,7 @@
 
 #include "mainwindow.h"
 #include "ui_TransferFunctionTool.h"
+#include <iostream>
 
 #include <cmath>
 #include <mkl_dfti.h>
@@ -50,7 +51,9 @@ MainWindow::MainWindow(QWidget *parent)
     //    int height = this->height()<int(0.80*rec.height())?int(0.80*rec.height()):this->height();
     // int width  = this->width()<int(0.60*rec.width())?int(0.60*rec.width()):this->width();
     int height = this->height()<int(rec.height())?int(rec.height()):this->height();
-    int width  = this->width()<int(rec.width())?int(rec.width()):this->width();    
+    int width  = this->width()<int(rec.width())?int(rec.width()):this->width();
+    height = abs(0.85*height);
+    width = abs(0.85*width);    
     this->resize(width, height);
 
     // ------------------------------------------------------------------------
@@ -244,6 +247,39 @@ MainWindow::MainWindow(QWidget *parent)
     this->onTableViewUpdated();
     this->updatePlots();
     ui->tabWidget->setCurrentIndex(0);
+
+
+    QMenuBar *menu = menuBar();
+    if (menu != nullptr) {
+      QMenu *fileMenu = menuBar()->addMenu(tr("&File"));    
+      QAction *saveAction = new QAction(tr("&Save"), this);
+      fileMenu->addAction(saveAction);
+      saveAction->setShortcuts(QKeySequence::Save);
+      saveAction->setStatusTip(tr("Save Data"));
+      connect(saveAction, &QAction::triggered, this, [=](){
+
+          QString fileName=QFileDialog::getSaveFileName(this,tr("Open File"),"", "All files (*.*)"); // sy - to continue from the previously \
+visited directory
+           QFile file(fileName);
+           if (!file.open(QFile::WriteOnly | QFile::Text)) {
+             QMessageBox::warning(this, tr("Application"),
+                                  tr("Cannot write file %1:\n%2.")
+                                  .arg(QDir::toNativeSeparators(fileName),
+                                       file.errorString()));
+             return false;
+           }
+
+
+
+           //Resolve relative paths before saving
+           QFileInfo fileInfo(fileName);
+           file.write("Hello World");
+
+           // close file
+           file.close();
+    ;
+      });;
+    }
 }
 
 MainWindow::~MainWindow()
@@ -281,7 +317,7 @@ void MainWindow::on_actionDocumentation_triggered()
 
 void MainWindow::on_actionVersion_triggered()
 {
-    QString versionText("Version 1.0.0");
+    QString versionText("Version 1.0.1");
     QMessageBox msgBox;
     QSpacerItem *theSpacer = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
     msgBox.setText(versionText);

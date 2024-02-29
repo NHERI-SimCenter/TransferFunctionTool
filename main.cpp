@@ -47,9 +47,10 @@ QString openStyleFiles()
 
 int main(int argc, char *argv[])
 {
-    GoogleAnalytics::SetTrackingId("UA-178896295-1");
-    GoogleAnalytics::StartSession();
-    GoogleAnalytics::ReportStart();
+
+  //  GoogleAnalytics::SetMeasurementId("G-CPFD5EFJ4Y");
+  //  GoogleAnalytics::SetAPISecret("vxNbZfRdRUyVx3fBpdUXxg");
+  //  GoogleAnalytics::CreateSessionId();  
 
     QApplication a(argc, argv);
 
